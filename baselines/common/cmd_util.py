@@ -54,8 +54,8 @@ def make_vec_env(env_id, env_type, num_env, seed,
 
     set_global_seeds(seed)
     if not force_dummy and num_env > 1:
-        if env_type == 'tactic_game':
-            num_env *= env_kwargs.get("sides", 2)#The default number of sides are 2
+        if env_type == 'tactic_game_gym':
+            num_env *= env_kwargs.get("sides", 2)#The default number of sides is 2
         return SubprocVecEnv([make_thunk(i + start_index, initializer=initializer) for i in range(num_env)])
     else:
         return DummyVecEnv([make_thunk(i + start_index, initializer=None) for i in range(num_env)])
@@ -89,7 +89,6 @@ def make_env(env_id, env_type, mpi_rank=0, subrank=0, seed=None, reward_scale=1.
     env = Monitor(env,
                   logger_dir and os.path.join(logger_dir, str(mpi_rank) + '.' + str(subrank)),
                   allow_early_resets=True)
-    
 
 
     if env_type == 'atari':
@@ -175,7 +174,6 @@ def common_arg_parser():
     parser.add_argument('--log_path', help='Directory to save learning curve data.', default=None, type=str)
     parser.add_argument('--play', default=False, action='store_true')
     return parser
-
 
 def robotics_arg_parser():
     """
