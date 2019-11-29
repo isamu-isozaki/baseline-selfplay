@@ -3,6 +3,7 @@ import re
 import multiprocessing
 import os.path as osp
 import gym
+import tactic_game_gym
 from collections import defaultdict
 import tensorflow as tf
 import numpy as np
