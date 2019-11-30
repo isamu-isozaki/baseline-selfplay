@@ -60,7 +60,7 @@ class SubprocVecEnv(VecEnv):
         else:
             self.sides = 1
         for i in range(nenvs//self.sides, nenvs):
-            env_fns[i] = lambda x : x
+            env_fns[i] = lambda *args: None
         assert nenvs % in_series == 0, "Number of envs must be divisible by number of envs to run in series"
         self.nremotes = nenvs // in_series
         env_fns = np.array_split(env_fns, self.nremotes)
@@ -93,6 +93,7 @@ class SubprocVecEnv(VecEnv):
             self.side %= self.sides
                 
         self.waiting = True
+        #do recv on the sae remote several times
     def tactic_game_fix_results(self, results):
         for i in range(len(results)-1, -1, -1):
             for j in range(len(results[i])):
@@ -100,7 +101,7 @@ class SubprocVecEnv(VecEnv):
         return results
     def step_wait(self):
         self._assert_not_closed()
-        results = [remote.recv() for remote in self.remotes]
+        results = [self.remotes[i//self.sides].recv() for i, _ in enumerate(self.remotes)]
         results = _flatten_list(results)
         if self.sides > 1:
             results = self.tactic_game_fix_results(results)
@@ -112,7 +113,7 @@ class SubprocVecEnv(VecEnv):
         self._assert_not_closed()
         for i in range(len(self.remotes)//self.sides):
             self.remotes[i].send(('reset', None))
-        obs = [remote.recv() for remote in self.remotes]
+        obs = [self.remotes[i//self.sides].recv() for i, _ in enumerate(self.remotes)]
         obs = _flatten_list(obs)
         if self.sides > 1:
             obs  = self.tactic_game_fix_results(obs)
