@@ -56,11 +56,11 @@ class SubprocVecEnv(VecEnv):
         self.in_series = in_series
         nenvs = len(env_fns)
         if(hasattr(env_fns[0](), 'sides')):
-            self.sides = env_fns[0].sides
+            self.sides = env_fns[0]().sides
         else:
             self.sides = 1
         for i in range(nenvs//self.sides, nenvs):
-            env_fns[i] = None
+            env_fns[i] = lambda x : x
         assert nenvs % in_series == 0, "Number of envs must be divisible by number of envs to run in series"
         self.nremotes = nenvs // in_series
         env_fns = np.array_split(env_fns, self.nremotes)
