@@ -1,5 +1,5 @@
 import multiprocessing as mp
-
+import gym
 import numpy as np
 from .vec_env import VecEnv, CloudpickleWrapper, clear_mpi_env_vars
 
@@ -7,8 +7,12 @@ from .vec_env import VecEnv, CloudpickleWrapper, clear_mpi_env_vars
 def worker(remote, parent_remote, env_fn_wrappers):
     def step_env(env, action):
         ob, reward, done, info = env.step(action)
-        if done:
+        if type(done) == list and done[0]:
             ob = env.reset()
+            ob = ob[0]
+        if type(done) != list and done:
+            ob = env.reset()
+            ob = ob[0]
         return ob, reward, done, info
 
     parent_remote.close()
@@ -25,8 +29,6 @@ def worker(remote, parent_remote, env_fn_wrappers):
             elif cmd == 'close':
                 remote.close()
                 break
-            elif cmd == 'set_side':
-                env.side = data
             elif cmd == 'get_spaces_spec':
                 remote.send(CloudpickleWrapper((envs[0].observation_space, envs[0].action_space, envs[0].spec)))
             else:
@@ -59,10 +61,9 @@ class SubprocVecEnv(VecEnv):
             self.sides = env_fns[0]().sides
         else:
             self.sides = 1
-        for i in range(nenvs//self.sides, nenvs):
-            env_fns[i] = lambda *args: None
-        assert nenvs % in_series == 0, "Number of envs must be divisible by number of envs to run in series"
-        self.nremotes = nenvs // in_series
+        env_fns = env_fns[:nenvs//self.sides]
+        assert nenvs//self.sides % in_series == 0, "Number of envs must be divisible by number of envs to run in series"
+        self.nremotes = nenvs //self.sides // in_series
         env_fns = np.array_split(env_fns, self.nremotes)
         ctx = mp.get_context(context)
         self.remotes, self.work_remotes = zip(*[ctx.Pipe() for _ in range(self.nremotes)])
@@ -79,21 +80,16 @@ class SubprocVecEnv(VecEnv):
         observation_space, action_space, self.spec = self.remotes[0].recv().x
         
         self.viewer = None
-        self.side = 0
         VecEnv.__init__(self, nenvs, observation_space, action_space)
 
     def step_async(self, actions):
         self._assert_not_closed()
-        actions = np.array_split(actions, self.nremotes)
-        for i, action in enumerate(actions):
-            if self.sides != 1:
-                self.remotes[(i//self.sides)].send(('set_side', self.side))
-            self.remotes[(i//self.sides)].send(('step', action))
-            self.side += 1
-            self.side %= self.sides
+        actions = np.array_split(actions, self.nremotes)#root of all evil and errors in my code. God bless you.
+        for j in range(len(actions)):
+            for i, action in enumerate(actions[j]):
+                self.remotes[(i//self.sides)].send(('step', action))
                 
         self.waiting = True
-        #do recv on the sae remote several times
     def tactic_game_fix_results(self, results):
         for i in range(len(results)-1, -1, -1):
             for j in range(len(results[i])):
@@ -101,8 +97,13 @@ class SubprocVecEnv(VecEnv):
         return results
     def step_wait(self):
         self._assert_not_closed()
-        results = [self.remotes[i//self.sides].recv() for i, _ in enumerate(self.remotes)]
+        #do recv on the same remote several times
+        results = [self.remotes[i//self.sides].recv() for i in range(len(self.remotes)*self.sides)]
         results = _flatten_list(results)
+        data = results.copy()[self.sides-1::self.sides]
+        results = np.asarray(results)
+        results[:len(self.remotes)] = data
+        #push the observations to the first portion of the results array.
         if self.sides > 1:
             results = self.tactic_game_fix_results(results)
         self.waiting = False
@@ -111,12 +112,15 @@ class SubprocVecEnv(VecEnv):
 
     def reset(self):
         self._assert_not_closed()
-        for i in range(len(self.remotes)//self.sides):
+        for i in range(len(self.remotes)):
             self.remotes[i].send(('reset', None))
-        obs = [self.remotes[i//self.sides].recv() for i, _ in enumerate(self.remotes)]
+        obs = [self.remotes[i].recv() for i, _ in enumerate(self.remotes)]
         obs = _flatten_list(obs)
         if self.sides > 1:
-            obs  = self.tactic_game_fix_results(obs)
+            obs += [[None] for _ in range(len(self.remotes)*(self.sides-1))]
+            obs = self.tactic_game_fix_results(obs)     
+            obs = zip(*obs)
+            obs = obs.__next__()
         return _flatten_obs(obs)
 
     def close_extras(self):
@@ -135,7 +139,11 @@ class SubprocVecEnv(VecEnv):
             pipe.send(('render', None))
         imgs = [pipe.recv() for pipe in self.remotes]
         imgs = _flatten_list(imgs)
-        imgs = self.tactic_game_fix_results(imgs)
+        if self.sides > 1:
+            imgs += [[None] for _ in range(len(self.remotes)*(self.sides-1))]
+            imgs = self.tactic_game_fix_results(imgs)
+            imgs = zip(*imgs)
+            imgs = imgs.__next__()
         return imgs
 
     def _assert_not_closed(self):

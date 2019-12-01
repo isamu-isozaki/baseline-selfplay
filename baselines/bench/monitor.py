@@ -6,6 +6,7 @@ from glob import glob
 import csv
 import os.path as osp
 import json
+import numpy as np
 
 class Monitor(Wrapper):
     EXT = "monitor.csv"
@@ -52,16 +53,19 @@ class Monitor(Wrapper):
         if self.needs_reset:
             raise RuntimeError("Tried to step environment that needs reset")
         ob, rew, done, info = self.env.step(action)
-        self.update(ob, rew, done, info)
+        if type(rew) == np.ndarray or rew != None:
+            self.update(ob, rew, done, info)
+
         return (ob, rew, done, info)
 
     def update(self, ob, rew, done, info):
+        print(f"Reward is {rew}")
         self.rewards.append(rew)
-        if done:
+        if (type(done) == list and done[0]) or (type(done) != list and done):
             self.needs_reset = True
-            eprew = sum(self.rewards)
+            eprew = np.sum(self.rewards, axis=0)
             eplen = len(self.rewards)
-            epinfo = {"r": round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart, 6)}
+            epinfo = {"r": np.round(eprew, 6), "l": eplen, "t": round(time.time() - self.tstart, 6)}
             for k in self.info_keywords:
                 epinfo[k] = info[k]
             self.episode_rewards.append(eprew)
