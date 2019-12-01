@@ -59,7 +59,6 @@ class Monitor(Wrapper):
         return (ob, rew, done, info)
 
     def update(self, ob, rew, done, info):
-        print(f"Reward is {rew}")
         self.rewards.append(rew)
         if (type(done) == list and done[0]) or (type(done) != list and done):
             self.needs_reset = True
@@ -74,9 +73,12 @@ class Monitor(Wrapper):
             epinfo.update(self.current_reset_info)
             if self.results_writer:
                 self.results_writer.write_row(epinfo)
-            assert isinstance(info, dict)
             if isinstance(info, dict):
                 info['episode'] = epinfo
+            elif isinstance(info, list) and isinstance(info[0], dict):
+                info = {f'{i}' : info[i] for i in range(len(info))}
+                info['episode'] = epinfo
+
 
         self.total_steps += 1
 
