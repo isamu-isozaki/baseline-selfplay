@@ -7,9 +7,9 @@ This repository is primarily made to make it so that OpenAI's baselines(which ca
 # Executiion
 run
 ```
-python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --custom_env_module=your_module_name
+python -m baselines.run --env=your_custom_env_id --env_type=your_env_type
 ```
-Below I'll talk about the specifics of your_custom_env_id, your_env_type, and your_module_name
+Below I'll talk about the specifics of your_custom_env_id, your_env_type, and also something called your_module_name
 # Installation requirements
 This repository, so far, is only tested with python 3.7.1 but it might work with other versions! Anyway, once you get that execute
 ```
@@ -85,7 +85,17 @@ And finally, just do
 ```
 pip install -e . 
 ```
-At the top level of your directory and you have both your selfplay environment and baselines. So, finally, run
+At the top level of your directory and you have both your selfplay environment and baselines.
+Then, go inside the baselines folder inside the cloned git repository. Inside it, you should find run.py. Replace the
+```
+import tactic_game_gym
+```
+with 
+```
+import your_module_name
+```
+I think I'll be able to make your_module_name an argument and import it but I tried and failed when using importlib so I'm currently thinking of another way. Anyway, until the day, please stick with this!
+So, then, finally, run
 ```
 python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --custom_env_module=your_module_name
 ```

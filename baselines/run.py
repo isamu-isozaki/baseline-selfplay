@@ -6,6 +6,7 @@ import gym
 from collections import defaultdict
 import tensorflow as tf
 import numpy as np
+import tactic_game_gym
 
 from baselines.common.vec_env import VecFrameStack, VecNormalize, VecEnv
 from baselines.common.vec_env.vec_video_recorder import VecVideoRecorder
@@ -205,7 +206,7 @@ def main(args):
     arg_parser = common_arg_parser()
     args, unknown_args = arg_parser.parse_known_args(args)
     extra_args = parse_cmdline_kwargs(unknown_args)
-    import_module(args.custom_env_module)
+    #import_module(args.custom_env_module)
     if MPI is None or MPI.COMM_WORLD.Get_rank() == 0:
         rank = 0
         configure_logger(args.log_path)

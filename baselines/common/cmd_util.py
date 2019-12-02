@@ -159,9 +159,9 @@ def common_arg_parser():
     Create an argparse.ArgumentParser for run_mujoco.py.
     """
     parser = arg_parser()
-    parser.add_argument('--custom_env_module', help='environment module name', type=str, default='gym.envs.classic_control.acrobot')
+    #parser.add_argument('--custom_env_module', help='environment module name', type=str, default='tactic_game_gym')
     parser.add_argument('--env', help='environment ID', type=str, default='Reacher-v2')
-    parser.add_argument('--env_type', help='type of environment, used when the environment type cannot be automatically determined', type=str)
+    parser.add_argument('--env_type', help='type of environment, used when the environment type cannot be automatically determined', default="tactic_game", type=str)
     parser.add_argument('--seed', help='RNG seed', type=int, default=None)
     parser.add_argument('--alg', help='Algorithm', type=str, default='ppo2')
     parser.add_argument('--num_timesteps', type=float, default=1e6),
