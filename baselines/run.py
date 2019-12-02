@@ -3,7 +3,6 @@ import re
 import multiprocessing
 import os.path as osp
 import gym
-import tactic_game_gym
 from collections import defaultdict
 import tensorflow as tf
 import numpy as np
@@ -206,7 +205,7 @@ def main(args):
     arg_parser = common_arg_parser()
     args, unknown_args = arg_parser.parse_known_args(args)
     extra_args = parse_cmdline_kwargs(unknown_args)
-
+    import_module(args.custom_env_module)
     if MPI is None or MPI.COMM_WORLD.Get_rank() == 0:
         rank = 0
         configure_logger(args.log_path)

@@ -2,155 +2,101 @@
 
 <img src="data/logo.jpg" width=25% align="right" /> [![Build status](https://travis-ci.org/openai/baselines.svg?branch=master)](https://travis-ci.org/openai/baselines)
 
-# Baselines
-
-OpenAI Baselines is a set of high-quality implementations of reinforcement learning algorithms.
-
-These algorithms will make it easier for the research community to replicate, refine, and identify new ideas, and will create good baselines to build research on top of. Our DQN implementation and its variants are roughly on par with the scores in published papers. We expect they will be used as a base around which new ideas can be added, and as a tool for comparing a new approach against existing ones. 
-
-## Prerequisites 
-Baselines requires python3 (>=3.5) with the development headers. You'll also need system packages CMake, OpenMPI and zlib. Those can be installed as follows
-### Ubuntu 
-    
-```bash
-sudo apt-get update && sudo apt-get install cmake libopenmpi-dev python3-dev zlib1g-dev
+# Baselines-selfplay
+This repository is primarily made to make it so that OpenAI's baselines(which can be found [here](https://github.com/openai/baselines)) can do selfplay!
+# Executiion
+run
 ```
-    
-### Mac OS X
-Installation of system packages on Mac requires [Homebrew](https://brew.sh). With Homebrew installed, run the following:
-```bash
-brew install cmake openmpi
+python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --custom_env_module=your_module_name
 ```
-    
-## Virtual environment
-From the general python package sanity perspective, it is a good idea to use virtual environments (virtualenvs) to make sure packages from different projects do not interfere with each other. You can install virtualenv (which is itself a pip package) via
-```bash
-pip install virtualenv
+Below I'll talk about the specifics of your_custom_env_id, your_env_type, and your_module_name
+# Installation requirements
+This repository, so far, is only tested with python 3.7.1 but it might work with other versions! Anyway, once you get that execute
 ```
-Virtualenvs are essentially folders that have copies of python executable and all python packages.
-To create a virtualenv called venv with python3, one runs 
-```bash
-virtualenv /path/to/venv --python=python3
+git clone https://github.com/isamu-isozaki/baseline-selfplay.git
+cd baseline-selfplay
+pip install -e .
 ```
-To activate a virtualenv: 
+And it should be up and running!
+# Environment requirements
+I made this so that, I need to make sure, but it won't affect any of the usual openAI gyms. So, you can still do things with them. 
+These requirements will include the requirements to make a custom environment 
+However, requirements for the selfplay environment is to
+1. It must be a class
+2. It has a sides attribute denoting the number of sides
+3. There must be methods step, reset and render
+4. The observation space must be 
+## Step function requirements
+1. The step function must accept an action which must be 1 dimensional.
+2. The step function returns None, None, None, None and save the action of the side if some sides still haven't updated. This is because I wanted to update the environment only when all sides decided to make their move. Once all sides had set their action the function must return observations, rewards, whether the environment is done, and optional infos
+3. All of the values returned must be returned in lists or numpy arrays where the base index denotes which side the given observation, reward, done, and optional info corresponds to. For example, obs[0] denotes the observation side 0 made after making the action and the environment updated.
+## Reset function requirements
+1. Resets environment and returns the observation in the same form as above but put it in a list. So, if we call the returned value obs, obs[0] corresponds the obs returned from the step function
+## Render function requirements
+1. Returns a rendered image in a list. So, img[0] will be the image.
+## Env_type requirements
+The is the folder in which the environment that is going to be installed will be held. The folder structure of environment modules are like(thanks [Ashish Poddar](https://medium.com/@apoddar573/making-your-own-custom-environment-in-gym-c3b65ff8cdaa)!)
 ```
-. /path/to/venv/bin/activate
+your_module_name/
+  README.md
+  setup.py
+  your_module_name/
+    __init__.py
+    your_env_type/
+      __init__.py
+      env.py
 ```
-More thorough tutorial on virtualenvs and options can be found [here](https://virtualenv.pypa.io/en/stable/) 
-
-
-## Tensorflow versions
-The master branch supports Tensorflow from version 1.4 to 1.14. For Tensorflow 2.0 support, please use tf2 branch.
-
-## Installation
-- Clone the repo and cd into it:
-    ```bash
-    git clone https://github.com/openai/baselines.git
-    cd baselines
-    ```
-- If you don't have TensorFlow installed already, install your favourite flavor of TensorFlow. In most cases, you may use
-    ```bash 
-    pip install tensorflow-gpu==1.14 # if you have a CUDA-compatible gpu and proper drivers
-    ```
-    or 
-    ```bash
-    pip install tensorflow==1.14
-    ```
-    to install Tensorflow 1.14, which is the latest version of Tensorflow supported by the master branch. Refer to [TensorFlow installation guide](https://www.tensorflow.org/install/)
-    for more details. 
-
-- Install baselines package
-    ```bash
-    pip install -e .
-    ```
-
-### MuJoCo
-Some of the baselines examples use [MuJoCo](http://www.mujoco.org) (multi-joint dynamics in contact) physics simulator, which is proprietary and requires binaries and a license (temporary 30-day license can be obtained from [www.mujoco.org](http://www.mujoco.org)). Instructions on setting up MuJoCo can be found [here](https://github.com/openai/mujoco-py)
-
-## Testing the installation
-All unit tests in baselines can be run using pytest runner:
+This will be your_env_type. your_env_id will come from
 ```
-pip install pytest
-pytest
+from gym.envs.registration import register
+
+register(
+    id=your_env_id,
+    entry_point=your_module_name.your_env_name:the_name_of_the_class_that_is_your_environment,
+)
 ```
-
-## Training models
-Most of the algorithms in baselines repo are used as follows:
-```bash
-python -m baselines.run --alg=<name of the algorithm> --env=<environment_id> [additional arguments]
+the name of the class that is your environment must be env.py or whatever name you want!
+Of course, all the above needs to be strings. This will go in the outer __init__ function. In the inner __init__ function you pretty much just import your environment but it must be referencing the module. By this, I mean that the inner __init__ function must import the environment via
 ```
-### Example 1. PPO with MuJoCo Humanoid
-For instance, to train a fully-connected network controlling MuJoCo humanoid using PPO2 for 20M timesteps
-```bash
-python -m baselines.run --alg=ppo2 --env=Humanoid-v2 --network=mlp --num_timesteps=2e7
+import your_module_name.your_env_name.env import the_name_of_the_class_that_is_your_environment
 ```
-Note that for mujoco environments fully-connected network is default, so we can omit `--network=mlp`
-The hyperparameters for both network and the learning algorithm can be controlled via the command line, for instance:
-```bash
-python -m baselines.run --alg=ppo2 --env=Humanoid-v2 --network=mlp --num_timesteps=2e7 --ent_coef=0.1 --num_hidden=32 --num_layers=3 --value_network=copy
+Then, in your setup.py, just write something like
 ```
-will set entropy coefficient to 0.1, and construct fully connected network with 3 layers with 32 hidden units in each, and create a separate network for value function estimation (so that its parameters are not shared with the policy network, but the structure is the same)
+from setuptools import setup
 
-See docstrings in [common/models.py](baselines/common/models.py) for description of network parameters for each type of model, and 
-docstring for [baselines/ppo2/ppo2.py/learn()](baselines/ppo2/ppo2.py#L152) for the description of the ppo2 hyperparameters. 
-
-### Example 2. DQN on Atari 
-DQN with Atari is at this point a classics of benchmarks. To run the baselines implementation of DQN on Atari Pong:
+setup(name=your_module_name,
+      version='0.0.1',
+      install_requires=[installation requirements]
+)
 ```
-python -m baselines.run --alg=deepq --env=PongNoFrameskip-v4 --num_timesteps=1e6
+The installation requirements should be in a list like
 ```
-
-## Saving, loading and visualizing models
-
-### Saving and loading the model
-The algorithms serialization API is not properly unified yet; however, there is a simple method to save / restore trained models. 
-`--save_path` and `--load_path` command-line option loads the tensorflow state from a given path before training, and saves it after the training, respectively. 
-Let's imagine you'd like to train ppo2 on Atari Pong,  save the model and then later visualize what has it learnt.
-```bash
-python -m baselines.run --alg=ppo2 --env=PongNoFrameskip-v4 --num_timesteps=2e7 --save_path=~/models/pong_20M_ppo2
+install_requires=["tensorflow-model-optimization==0.1.1",
+"tqdm==4.39.0",
+"wincertstore==0.2"]
 ```
-This should get to the mean reward per episode about 20. To load and visualize the model, we'll do the following - load the model, train it for 0 steps, and then visualize: 
-```bash
-python -m baselines.run --alg=ppo2 --env=PongNoFrameskip-v4 --num_timesteps=0 --load_path=~/models/pong_20M_ppo2 --play
+And finally, just do
 ```
-
-*NOTE:* Mujoco environments require normalization to work properly, so we wrap them with VecNormalize wrapper. Currently, to ensure the models are saved with normalization (so that trained models can be restored and run without further training) the normalization coefficients are saved as tensorflow variables. This can decrease the performance somewhat, so if you require high-throughput steps with Mujoco and do not need saving/restoring the models, it may make sense to use numpy normalization instead. To do that, set 'use_tf=False` in [baselines/run.py](baselines/run.py#L116). 
-
-### Logging and vizualizing learning curves and other training metrics
-By default, all summary data, including progress, standard output, is saved to a unique directory in a temp folder, specified by a call to Python's [tempfile.gettempdir()](https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir).
-The directory can be changed with the `--log_path` command-line option.
-```bash
-python -m baselines.run --alg=ppo2 --env=PongNoFrameskip-v4 --num_timesteps=2e7 --save_path=~/models/pong_20M_ppo2 --log_path=~/logs/Pong/
+pip install -e . 
 ```
-*NOTE:* Please be aware that the logger will overwrite files of the same name in an existing directory, thus it's recommended that folder names be given a unique timestamp to prevent overwritten logs.
-
-Another way the temp directory can be changed is through the use of the `$OPENAI_LOGDIR` environment variable.
-
-For examples on how to load and display the training data, see [here](docs/viz/viz.ipynb).
-
-## Subpackages
-
-- [A2C](baselines/a2c)
-- [ACER](baselines/acer)
-- [ACKTR](baselines/acktr)
-- [DDPG](baselines/ddpg)
-- [DQN](baselines/deepq)
-- [GAIL](baselines/gail)
-- [HER](baselines/her)
-- [PPO1](baselines/ppo1) (obsolete version, left here temporarily)
-- [PPO2](baselines/ppo2) 
-- [TRPO](baselines/trpo_mpi)
-
-
-
-## Benchmarks
-Results of benchmarks on Mujoco (1M timesteps) and Atari (10M timesteps) are available 
-[here for Mujoco](https://htmlpreview.github.com/?https://github.com/openai/baselines/blob/master/benchmarks_mujoco1M.htm) 
-and
-[here for Atari](https://htmlpreview.github.com/?https://github.com/openai/baselines/blob/master/benchmarks_atari10M.htm) 
-respectively. Note that these results may be not on the latest version of the code, particular commit hash with which results were obtained is specified on the benchmarks page. 
+At the top level of your directory and you have both your selfplay environment and baselines. So, finally, run
+```
+python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --custom_env_module=your_module_name
+```
+and it should start training!
 
 To cite this repository in publications:
+
+
+    @misc{baselines\_selfplay,
+      author = {Isamu Isozaki},
+      title = {OpenAI Baselines selfplay},
+      year = {2019},
+      publisher = {GitHub},
+      journal = {GitHub repository},
+      howpublished = {\url{https://github.com/isamu-isozaki/baseline-selfplay.git}},
+    }
+
 
     @misc{baselines,
       author = {Dhariwal, Prafulla and Hesse, Christopher and Klimov, Oleg and Nichol, Alex and Plappert, Matthias and Radford, Alec and Schulman, John and Sidor, Szymon and Wu, Yuhuai and Zhokhov, Peter},

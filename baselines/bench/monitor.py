@@ -76,7 +76,7 @@ class Monitor(Wrapper):
             if isinstance(info, dict):
                 info['episode'] = epinfo
             elif isinstance(info, list) and isinstance(info[0], dict):
-                info = {f'{i}' : info[i] for i in range(len(info))}
+                info = {i : info[i] for i in range(len(info))}
                 info['episode'] = epinfo
 
 
