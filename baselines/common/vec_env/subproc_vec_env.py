@@ -144,7 +144,7 @@ class SubprocVecEnv(VecEnv):
             imgs = self.tactic_game_fix_results(imgs)
             imgs = zip(*imgs)
             imgs = imgs.__next__()
-        return imgs[0]
+        return imgs
 
     def _assert_not_closed(self):
         assert not self.closed, "Trying to operate on a SubprocVecEnv after calling close()"

@@ -253,7 +253,10 @@ class RewardScaler(gym.RewardWrapper):
         self.scale = scale
 
     def reward(self, reward):
-        return reward * self.scale
+        if isinstance(reward, np.ndarray) or reward != None:
+            return reward * self.scale
+        else:
+            return None
 
 class AllowBacktracking(gym.Wrapper):
     """
