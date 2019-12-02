@@ -25,7 +25,13 @@ However, requirements for the selfplay environment is to
 1. It must be a class
 2. It has a sides attribute denoting the number of sides
 3. There must be methods step, reset and render
-4. The observation space must be 
+4. The observation space and action space must be defined as attributes in the __init__ function of the environment like
+```
+from gym import spaces
+self.observation_space = spaces.Box(low=0.0, high=1.0, shape=[10,10,3], dtype=np.float32)
+self.action_space = spaces.Box(low=0.0, high=1.0, shape=[10], dtype=np.float32)
+```
+To see the list of spaces see [here](https://github.com/openai/gym/tree/master/gym/spaces)!
 ## Step function requirements
 1. The step function must accept an action which must be 1 dimensional.
 2. The step function returns None, None, None, None and save the action of the side if some sides still haven't updated. This is because I wanted to update the environment only when all sides decided to make their move. Once all sides had set their action the function must return observations, rewards, whether the environment is done, and optional infos
