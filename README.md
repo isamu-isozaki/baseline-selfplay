@@ -97,7 +97,7 @@ import your_module_name
 I think I'll be able to make your_module_name an argument and import it but I tried and failed when using importlib so I'm currently thinking of another way. Anyway, until the day, please stick with this!
 So, then, finally, run
 ```
-python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --custom_env_module=your_module_name
+python -m baselines.run --env=your_custom_env_id --env_type=your_env_type
 ```
 and it should start training!
 
