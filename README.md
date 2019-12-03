@@ -7,7 +7,7 @@ This repository is primarily made to make it so that OpenAI's baselines(which ca
 # Execution
 run
 ```
-python -m baselines.run --env=your_custom_env_id --env_type=your_env_type
+python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --self_play
 ```
 Below I'll talk about the specifics of your_custom_env_id, your_env_type, and also something called your_module_name
 # Installation requirements
@@ -105,10 +105,26 @@ pip install -e .
 on the base directory of this cloned repository!
 Finally, run
 ```
-python -m baselines.run --env=your_custom_env_id --env_type=your_env_type
+python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --self_play
 ```
 and it should start training!
-
+## A note on arguments
+You can make more if you want but the basic arguments for the command above are
+1. env - your environment ID the default id is Reacher-v2. The type is string.
+2. env_type - type of environment, used when the environment type cannot be automatically determined. I set the default here to tactic_game but you can change it if you want! The type is string.
+3. seed - This is your RNG seed. The default value is None and the type is int.
+4. alg - This is which algorithm is going to be picked. The default is ppo2. The type is string
+5. num_timesteps - The number of timesteps. The type is interestingly float and the default value is 1e6, which is a million. This is the number of timesteps the agent trains for.
+6. network - This is the network type (mlp, cnn, lstm, cnn_lstm, conv_only) and the default is None. For ppo2, if this is set to None, mlp is selected(multilayer perceptron). I'm not sure about the other algorithms
+7. gamestate - game state to load (so far only used in retro games). So, unless you are working with them, you can ignore this
+8. num_env - Number of environment copies being run in parallel. When not specified, set to number of cpus for Atari, and to 1 for Mujoco. The default is None and the type is int!
+9. reward_scale - Reward scale factor. This multiplies the reward by this factor on every timestep. The default is 1.0. And the type is float.
+10. save_path - This is the path to save trained model to. The default is None. The type is string.
+11. save_video_interval - Save video every x steps (0 = disabled). The default is 0. This will save the videos in a videos folder inside your log_path. The type is int
+12. save_video_length - Length of recorded video. Default: 200. This will cut the video at this many timesteps and then go on to make a new one. The type is int
+13. log_path - Directory to save learning curve data. The default is None and the type is string.
+14. play - This will make the agent actually start playing after training until you stop it. I think I'll modify it so that if it is a multiplayer game. The default is false.
+15. self_play - I added this parameter. If you want the environment to be self-play just do --self_play. The default is True.
 To cite this repository in publications:
 
 
