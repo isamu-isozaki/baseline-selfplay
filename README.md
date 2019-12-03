@@ -36,6 +36,7 @@ To see the list of spaces see [here](https://github.com/openai/gym/tree/master/g
 1. The step function must accept an action which must be 1 dimensional.
 2. The step function returns None, None, None, None and saves the action of the side if some sides still haven't updated. This is because I wanted to update the environment only when all sides decided to make their move. Once all sides had set their action the function must return observations, rewards, whether the environment is done, a bool True or False value, and optional infos, a dictionary. 
 3. All of the values returned must be returned in lists or numpy arrays where the base index denotes which side the given observation, reward, done, and optional info corresponds to. For example, obs[0] denotes the observation side 0 made after making the action and the environment updated.
+4. The step function must set the action to the current side. The current side is computed by adding one to the current side(which starts from 0) and getting the remainder with self.sides!
 ## Reset function requirements
 1. Reset environments and returns the observation in the same form as above but put it in a list. So, if we call the returned value obs, obs[0] corresponds the obs returned from the step function
 ## Render function requirements
