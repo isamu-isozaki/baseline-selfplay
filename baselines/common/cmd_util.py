@@ -53,7 +53,7 @@ def make_vec_env(env_id, env_type, num_env, seed,
         )
 
     set_global_seeds(seed)
-    if env_type == env_kwargs.get("self_play", False):
+    if not env_kwargs.get("no_self_play", True):
         num_env *= env_kwargs.get("sides", 2)#The default number of sides is 2
     if not force_dummy and num_env > 1:
         return SubprocVecEnv([make_thunk(i + start_index, initializer=initializer) for i in range(num_env)])
@@ -162,7 +162,7 @@ def common_arg_parser():
     #parser.add_argument('--custom_env_module', help='environment module name', type=str, default='tactic_game_gym')
     parser.add_argument('--env', help='environment ID', type=str, default='Reacher-v2')
     parser.add_argument('--env_type', help='type of environment, used when the environment type cannot be automatically determined', default="tactic_game", type=str)
-    parser.add_argument('--self_play', default=True, action='store_false')
+    parser.add_argument('--no_self_play', default=False, action='store_true')
     parser.add_argument('--seed', help='RNG seed', type=int, default=None)
     parser.add_argument('--alg', help='Algorithm', type=str, default='ppo2')
     parser.add_argument('--num_timesteps', type=float, default=1e6),
