@@ -125,6 +125,7 @@ You can make more if you want but the basic arguments for the command above are
 13. log_path - Directory to save learning curve data. The default is None and the type is string.
 14. play - This will make the agent actually start playing after training until you stop it. I think I'll modify it so that if it is a multiplayer game. The default is false.
 15. no_self_play - I added this parameter. If you want the environment to not be self-play just do --no_self_play. The default is False.
+
 To cite this repository in publications:
 
 
