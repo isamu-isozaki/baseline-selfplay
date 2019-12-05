@@ -7,9 +7,9 @@ This repository is primarily made to make it so that OpenAI's baselines(which ca
 # Execution
 run
 ```
-python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --self_play
+python -m baselines.run --env=your_env_id --env_type=your_env_type --self_play
 ```
-Below I'll talk about the specifics of your_custom_env_id, your_env_type, and also something called your_module_name
+Below I'll talk about the specifics of your_env_id, your_env_type, and also something called your_module_name
 # Installation requirements
 This repository, so far, is only tested with python 3.7.1 but it might work with other versions! Anyway, once you get that execute
 ```
@@ -65,6 +65,13 @@ register(
 )
 ```
 the name of the class that is your environment must be the class name of your environment.
+
+Here, your_env_id needs to be in the for env_name-v0 or for those of you who like regex, 
+```
+^(?:[\w:-]+\/)?([\w:.-]+)-v(\d+)$
+```
+otherwise there will be an error.
+
 Of course, all the above needs to be strings. This will go in the outer __init__ file. In the inner __init__ file you pretty much just import your environment but it must be referencing the module. By this, I mean that the inner __init__ file must import the environment via
 ```
 import your_module_name.your_env_name.env import the_name_of_the_class_that_is_your_environment
@@ -105,7 +112,7 @@ pip install -e .
 on the base directory of this cloned repository!
 Finally, run
 ```
-python -m baselines.run --env=your_custom_env_id --env_type=your_env_type --self_play
+python -m baselines.run --env=your_env_id --env_type=your_env_type --self_play
 ```
 and it should start training!
 ## A note on arguments
