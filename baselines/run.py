@@ -90,6 +90,7 @@ def build_env(args):
     nenv = args.num_env or ncpu
     alg = args.alg
     seed = args.seed
+    
 
     env_type, env_id = get_env_type(args)
 
@@ -111,7 +112,10 @@ def build_env(args):
         get_session(config=config)
 
         flatten_dict_observations = alg not in {'her'}
-        env = make_vec_env(env_id, env_type, args.num_env or 1, seed, reward_scale=args.reward_scale, flatten_dict_observations=flatten_dict_observations)
+        args_dict = vars(args)
+        del args_dict["seed"]
+        #so that seed won't overwrite the method given by gym.Env class
+        env = make_vec_env(env_id, env_type, args.num_env or 1, seed, reward_scale=args.reward_scale, flatten_dict_observations=flatten_dict_observations, env_kwargs=args_dict)
 
         if env_type == 'mujoco':
             env = VecNormalize(env, use_tf=True)
