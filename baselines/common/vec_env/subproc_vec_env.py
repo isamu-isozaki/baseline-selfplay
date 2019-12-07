@@ -12,7 +12,6 @@ def worker(remote, parent_remote, env_fn_wrappers):
             ob = ob[0]
         if type(done) != list and done:
             ob = env.reset()
-            ob = ob[0]
         return ob, reward, done, info
 
     parent_remote.close()
