@@ -83,10 +83,11 @@ class SubprocVecEnv(VecEnv):
 
     def step_async(self, actions):
         self._assert_not_closed()
-        actions = np.array_split(actions, self.nremotes)#root of all evil and errors in my code. God bless you.
+        actions = np.array_split(actions, self.nremotes)
         for j in range(len(actions)):
             for i, action in enumerate(actions[j]):
-                self.remotes[(i//self.sides)].send(('step', action))
+                index = (i//self.sides)
+                self.remotes[j].send(('step', action))
                 
         self.waiting = True
     def tactic_game_fix_results(self, results):
