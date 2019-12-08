@@ -6,6 +6,7 @@ from baselines import logger
 from collections import deque
 from baselines.common import explained_variance, set_global_seeds
 from baselines.common.policies import build_policy
+from tqdm import tqdm
 try:
     from mpi4py import MPI
 except ImportError:
@@ -126,7 +127,7 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
     tfirststart = time.perf_counter()
 
     nupdates = total_timesteps//nbatch
-    for update in range(1, nupdates+1):
+    for update in tqdm(range(1, nupdates+1)):
         assert nbatch % nminibatches == 0
         # Start timer
         tstart = time.perf_counter()
