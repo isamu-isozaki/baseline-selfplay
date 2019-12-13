@@ -31,7 +31,8 @@ def ortho_init(scale=1.0):
         u, _, v = np.linalg.svd(a, full_matrices=False)
         q = u if u.shape == flat_shape else v # pick the one with the correct shape
         q = q.reshape(shape)
-        return (scale * q[:shape[0], :shape[1]]).astype(np.float32)
+        output =  (scale * q[:shape[0], :shape[1]]).astype(np.float32)
+        return output
     return _ortho_init
 
 def conv(x, scope, *, nf, rf, stride, pad='VALID', init_scale=1.0, data_format='NHWC', one_dim_bias=False):

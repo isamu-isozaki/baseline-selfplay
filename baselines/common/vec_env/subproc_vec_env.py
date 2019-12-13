@@ -20,6 +20,7 @@ def worker(remote, parent_remote, env_fn_wrappers):
         while True:
             cmd, data = remote.recv()
             if cmd == 'step':
+                a = np.array(data)
                 remote.send([step_env(env, action) for env, action in zip(envs, data)])
             elif cmd == 'reset':
                 remote.send([env.reset() for env in envs])
@@ -84,10 +85,13 @@ class SubprocVecEnv(VecEnv):
     def step_async(self, actions):
         self._assert_not_closed()
         actions = np.array_split(actions, self.nremotes)
+        action_in_series = []
         for j in range(len(actions)):
-            for i, action in enumerate(actions[j]):
-                index = (i//self.sides)
-                self.remotes[j].send(('step', action))
+            for action in actions[j]:
+                action_in_series.append(action)
+                if(len(action_in_series) == self.in_series):
+                    self.remotes[j].send(('step', action_in_series))
+                    action_in_series = []
                 
         self.waiting = True
     def tactic_game_fix_results(self, results):
