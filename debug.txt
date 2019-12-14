@@ -1,0 +1,4 @@
+While the input is a normal distribution, the output only outputs a single value with the std of 0 with only a changing mean.
+Is this the default behavior of the network?
+Batch size was 4096
+also maybe the ortho thing fucked up and 0 eigen?
