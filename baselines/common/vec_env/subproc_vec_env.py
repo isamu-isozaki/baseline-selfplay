@@ -20,7 +20,6 @@ def worker(remote, parent_remote, env_fn_wrappers):
         while True:
             cmd, data = remote.recv()
             if cmd == 'step':
-                a = np.array(data)
                 remote.send([step_env(env, action) for env, action in zip(envs, data)])
             elif cmd == 'reset':
                 remote.send([env.reset() for env in envs])

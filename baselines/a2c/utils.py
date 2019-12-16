@@ -35,7 +35,7 @@ def ortho_init(scale=1.0):
         return output
     return _ortho_init
 
-def conv(x, scope, *, nf, rf, stride, pad='VALID', init_scale=1.0, data_format='NHWC', one_dim_bias=False):
+def conv(x, scope, *, nf, rf, stride, pad='VALID', init_scale=1.0, data_format='NHWC', one_dim_bias=False, **kwargs):
     if data_format == 'NHWC':
         channel_ax = 3
         strides = [1, stride, stride, 1]
