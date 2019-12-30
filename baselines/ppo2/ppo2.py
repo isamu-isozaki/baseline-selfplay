@@ -77,7 +77,7 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
 
 
     '''
-
+    print(f"load_path is {load_path}")
     set_global_seeds(seed)
 
     if isinstance(lr, float): lr = constfn(lr)

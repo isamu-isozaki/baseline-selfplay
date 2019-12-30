@@ -34,3 +34,9 @@ src
 .cache
 
 MUJOCO_LOG.TXT
+
+*/__pycache__/
+*.egg-info/
+.gitignore
+.vscode/
+*/.vscode/
