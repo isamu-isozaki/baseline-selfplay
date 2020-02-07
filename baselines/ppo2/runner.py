@@ -1,6 +1,6 @@
 import numpy as np
-from baselines.common.runners import AbstractEnvRunner
 from tqdm import tqdm
+from baselines.common.runners import AbstractEnvRunner
 
 class Runner(AbstractEnvRunner):
     """
@@ -24,7 +24,7 @@ class Runner(AbstractEnvRunner):
         mb_states = self.states
         epinfos = []
         # For n in range number of steps
-        for _ in tqdm(range(self.nsteps)):
+        for _ in range(self.nsteps):
             # Given observations, get action value and neglopacs
             # We already have self.obs because Runner superclass run self.obs[:] = env.reset() on init
             actions, values, self.states, neglogpacs = self.model.step(self.obs, S=self.states, M=self.dones)
