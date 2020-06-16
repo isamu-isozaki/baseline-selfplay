@@ -12,9 +12,8 @@ try:
 except ImportError:
     MPI = None
 from baselines.ppo2.runner import Runner
-import wandb
-from wandb.tensorflow import WandbHook
-wandb.init(project="tactic-game")
+#import wandb
+#wandb.init(project="tactic-game")
 
 
 def constfn(val):
@@ -112,11 +111,14 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
     model = model_fn(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
                     nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
                     max_grad_norm=max_grad_norm, comm=comm, mpi_rank_weight=mpi_rank_weight)
-
+    model_opponents = [model_fn(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
+                    nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
+                    max_grad_norm=max_grad_norm, comm=comm, mpi_rank_weight=mpi_rank_weight) for _ in range(env.sides-1)]
+    #Added opponents
     if load_path is not None:
         model.load(load_path)
     # Instantiate the runner object
-    runner = Runner(env=env, model=model, nsteps=nsteps, gamma=gamma, lam=lam)
+    runner = Runner(env=env, model=model, model_opponent=model_opponents, nsteps=nsteps, gamma=gamma, lam=lam)
     if eval_env is not None:
         eval_runner = Runner(env = eval_env, model = model, nsteps = nsteps, gamma = gamma, lam= lam)
 
@@ -219,14 +221,16 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
             for (lossval, lossname) in zip(lossvals, model.loss_names):
                 logger.logkv('loss/' + lossname, lossval)
                 wandb_log_dic['loss/' + lossname] = lossval
-            wandb.log(wandb_log_dic)
+            # print(wandb_log_dic)
+            # wandb.log(wandb_log_dic)
             logger.dumpkvs()
         if save_interval and (update % save_interval == 0 or update == 1) and logger.get_dir() and is_mpi_root:
             checkdir = osp.join(logger.get_dir(), 'checkpoints')
             os.makedirs(checkdir, exist_ok=True)
             savepath = osp.join(checkdir, '%.5i'%update)
             print('Saving to', savepath)
-            model.save(savepath)
+            runner.save(savepath)
+            model = runner.model
 
     return model
 # Avoid division error when calculate the mean (in our case if epinfo is empty returns np.nan, not return an error)
