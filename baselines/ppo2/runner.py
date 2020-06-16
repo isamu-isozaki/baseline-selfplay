@@ -11,27 +11,46 @@ class Runner(AbstractEnvRunner):
     run():
     - Make a mini batch
     """
-    def __init__(self, *, env, model, nsteps, gamma, lam):
+    def __init__(self, *, env, model, model_opponents, nsteps, gamma, lam):
         super().__init__(env=env, model=model, nsteps=nsteps)
+        self.model_opponents = model_opponents
         # Lambda used in GAE (General Advantage Estimation)
         self.lam = lam
         # Discount rate
         self.gamma = gamma
-
+        self.paths = []
     def run(self):
         # Here, we init the lists that will contain the mb of experiences
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
         mb_states = self.states
         epinfos = []
+        for i in range(len(self.model_opponents)):
+            self.model_opponents[i].load_from_random(self.paths)#Opponent has a random policy
         # For n in range number of steps
         for _ in range(self.nsteps):
             # Given observations, get action value and neglopacs
             # We already have self.obs because Runner superclass run self.obs[:] = env.reset() on init
-            actions, values, self.states, neglogpacs = self.model.step(self.obs, S=self.states, M=self.dones)
+            actions, values, self.states[0::self.env.sides], neglogpacs = self.model.step(self.obs[0::self.env.sides], S=self.states[0::self.env.sides], M=self.dones[0::self.env.sides])
+            opponent_actions, opponent_values, opponent_states, opponent_neglogpacs = [], [], [], []
+            for i in range(1, self.env.sides):
+                opponent_action, opponent_value, self.states[i::self.env.sides], opponent_neglogpac = self.model_opponents[i].step(self.obs[i::self.env.sides], S=self.states[i::self.env.sides], M=self.dones[i::self.env.sides])
+                opponent_actions.append(opponent_action)
+                opponent_values.append(opponent_value)
+                opponent_neglogpacs.append(opponent_neglogpac)
+            full_actions = np.concatenate([np.zeros_like(actions) for _ in range(self.env.sides)], axis=0)
+            full_values = np.concatenate([np.zeros_like(values) for _ in range(self.env.sides)], axis=0)
+            full_neglogpacs = np.concatenate([np.zeros_like(neglogpacs) for _ in range(self.env.sides)], axis=0)
+            full_actions[0::self.env.sides] = actions
+            full_values[0::self.env.sides] = values
+            full_neglogpacs[0::self.env.sides] = neglogpacs
+            for i in range(self.env.sides-1):
+                full_actions[1+i::self.env.sides] = opponent_actions[i]
+                full_values[1+i::self.env.sides] = opponent_values[i]
+                full_neglogpacs[1+i::self.env.sides] = opponent_neglogpacs[i]
             mb_obs.append(self.obs.copy())
-            mb_actions.append(actions)
-            mb_values.append(values)
-            mb_neglogpacs.append(neglogpacs)
+            mb_actions.append(full_actions)
+            mb_values.append(full_values)
+            mb_neglogpacs.append(full_neglogpacs)
             mb_dones.append(self.dones)
 
             # Take actions in env and look the results
@@ -66,6 +85,9 @@ class Runner(AbstractEnvRunner):
         mb_returns = mb_advs + mb_values
         return (*map(sf01, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs)),
             mb_states, epinfos)
+    def save(self, path):
+        paths.append(path)
+        self.model.save(path)
 # obs, returns, masks, actions, values, neglogpacs, states = runner.run()
 def sf01(arr):
     """
@@ -73,5 +95,4 @@ def sf01(arr):
     """
     s = arr.shape
     return arr.swapaxes(0, 1).reshape(s[0] * s[1], *s[2:])
-
 
