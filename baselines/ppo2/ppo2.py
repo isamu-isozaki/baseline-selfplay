@@ -12,9 +12,8 @@ try:
 except ImportError:
     MPI = None
 from baselines.ppo2.runner import Runner
-import wandb
-from wandb.tensorflow import WandbHook
-wandb.init(project="tactic-game")
+#import wandb
+#wandb.init(project="tactic-game")
 
 
 def constfn(val):
@@ -219,7 +218,8 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
             for (lossval, lossname) in zip(lossvals, model.loss_names):
                 logger.logkv('loss/' + lossname, lossval)
                 wandb_log_dic['loss/' + lossname] = lossval
-            wandb.log(wandb_log_dic)
+            #print(wandb_log_dic)
+            #wandb.log(wandb_log_dic)
             logger.dumpkvs()
         if save_interval and (update % save_interval == 0 or update == 1) and logger.get_dir() and is_mpi_root:
             checkdir = osp.join(logger.get_dir(), 'checkpoints')

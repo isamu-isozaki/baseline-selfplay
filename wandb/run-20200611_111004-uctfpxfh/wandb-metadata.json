@@ -1,0 +1,40 @@
+{
+    "root": "D:/tactic_game/tactic_game_train/baseline-selfplay",
+    "program": "D:\\tactic_game\\tactic_game_train\\baseline-selfplay\\baselines\\run.py",
+    "git": {
+        "remote": "https://github.com/isamu-isozaki/baseline-selfplay.git",
+        "commit": "f4638e70dfaefcea662db9013709ceb6bb122141"
+    },
+    "email": "isamu.website@gmail.com",
+    "startedAt": "2020-06-11T11:10:04.838460",
+    "host": "DESKTOP-6K0MGU9",
+    "username": "isamu",
+    "executable": "D:\\Program Files\\anaconda\\python.exe",
+    "os": "Windows-10-10.0.17763-SP0",
+    "python": "3.7.4",
+    "cpu_count": 12,
+    "args": [
+        "--alg=ppo2",
+        "--env=tactic_game-v0",
+        "--network=cnn_lstm",
+        "--log_path=logs_ppo2_cnn_lstm_several_types_collide",
+        "--save_video_interval=10",
+        "--save_path=save",
+        "--reward_scale=0.01",
+        "--num_env=6",
+        "--save_video_length=1000",
+        "--save_interval=10",
+        "--log_interval=10",
+        "--stage_update_num=1e6",
+        "--act_board_size=4",
+        "--is_train",
+        "--use_boid",
+        "--game_timestep=0.3"
+    ],
+    "state": "killed",
+    "jobType": null,
+    "mode": "run",
+    "project": "tactic-game",
+    "heartbeatAt": "2020-06-11T11:10:27.310889",
+    "exitcode": 255
+}

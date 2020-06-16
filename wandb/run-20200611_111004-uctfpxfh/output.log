@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "D:\Program Files\anaconda\lib\runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "D:\Program Files\anaconda\lib\runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "D:\tactic_game\tactic_game_train\baseline-selfplay\baselines\run.py", line 256, in <module>
+    main(sys.argv)
+  File "D:\tactic_game\tactic_game_train\baseline-selfplay\baselines\run.py", line 222, in main
+    model, env = train(args, extra_args)
+  File "D:\tactic_game\tactic_game_train\baseline-selfplay\baselines\run.py", line 65, in train
+    env = build_env(args)
+  File "D:\tactic_game\tactic_game_train\baseline-selfplay\baselines\run.py", line 112, in build_env
+    get_session(config=config)
+  File "D:\tactic_game\tactic_game_train\baseline-selfplay\baselines\common\tf_util.py", line 55, in get_session
+    sess = make_session(config=config, make_default=True)
+  File "D:\tactic_game\tactic_game_train\baseline-selfplay\baselines\common\tf_util.py", line 70, in make_session
+    return tf.InteractiveSession(config=config, graph=graph)
+  File "D:\Program Files\anaconda\lib\site-packages\tensorflow_core\python\client\session.py", line 1747, in __init__
+    super(InteractiveSession, self).__init__(target, graph, config)
+  File "D:\Program Files\anaconda\lib\site-packages\tensorflow_core\python\client\session.py", line 699, in __init__
+    self._session = tf_session.TF_NewSessionRef(self._graph._c_graph, opts)
+KeyboardInterrupt
