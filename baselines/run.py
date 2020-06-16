@@ -253,4 +253,5 @@ def main(args):
     return model
 
 if __name__ == '__main__':
+    print(sys.argv)
     main(sys.argv)
