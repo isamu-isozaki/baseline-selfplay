@@ -84,7 +84,7 @@ class Runner(AbstractEnvRunner):
             mb_advs[t] = lastgaelam = delta + self.gamma * self.lam * nextnonterminal * lastgaelam
         mb_returns = mb_advs + mb_values
         return (*map(sf01, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs)),
-            mb_states, epinfos)
+            mb_states, epinfos, mb_rewards[0::self.env.sides].mean())
     def save(self, path):
         paths.append(path)
         self.model.save(path)
