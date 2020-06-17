@@ -53,7 +53,7 @@ def goToGoal(env, lastObs):
 
         action[len(action)-1] = 0.05 #open
 
-        obsDataNew, reward, done, info = env.step(action)
+        obsDataNew, reward, done, info = env.step(action, **kwargs)
         timeStep += 1
 
         episodeAcs.append(action)
@@ -71,7 +71,7 @@ def goToGoal(env, lastObs):
 
         action[len(action)-1] = -0.005
 
-        obsDataNew, reward, done, info = env.step(action)
+        obsDataNew, reward, done, info = env.step(action, **kwargs)
         timeStep += 1
 
         episodeAcs.append(action)
@@ -90,7 +90,7 @@ def goToGoal(env, lastObs):
 
         action[len(action)-1] = -0.005
 
-        obsDataNew, reward, done, info = env.step(action)
+        obsDataNew, reward, done, info = env.step(action, **kwargs)
         timeStep += 1
 
         episodeAcs.append(action)
@@ -105,7 +105,7 @@ def goToGoal(env, lastObs):
         action = [0, 0, 0, 0]
         action[len(action)-1] = -0.005 # keep the gripper closed
 
-        obsDataNew, reward, done, info = env.step(action)
+        obsDataNew, reward, done, info = env.step(action, **kwargs)
         timeStep += 1
 
         episodeAcs.append(action)

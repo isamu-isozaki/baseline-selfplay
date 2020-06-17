@@ -20,7 +20,7 @@ class StochasticFrameSkip(gym.Wrapper):
         self.curac = None
         return self.env.reset(**kwargs)
 
-    def step(self, ac):
+    def step(self, action, **kwargs):
         done = False
         totrew = 0
         for i in range(self.n):
@@ -67,8 +67,8 @@ class PartialFrameStack(gym.Wrapper):
             self.frames.append(ob)
         return self._get_ob()
 
-    def step(self, ac):
-        ob, reward, done, info = self.env.step(ac)
+    def step(self, action, **kwargs):
+        ob, reward, done, info = self.env.step(action, **kwargs)
         self.frames.append(ob)
         return self._get_ob(), reward, done, info
 
@@ -151,9 +151,9 @@ class AppendTimeout(gym.Wrapper):
             break
         self.timeout = env._max_episode_steps
 
-    def step(self, ac):
+    def step(self, action, **kwargs):
         self.ac_count += 1
-        ob, rew, done, info = self.env.step(ac)
+        ob, rew, done, info = self.env.step(action, **kwargs)
         return self._process(ob), rew, done, info
 
     def reset(self):
@@ -251,6 +251,9 @@ class RewardScaler(gym.RewardWrapper):
     def __init__(self, env, scale=0.01):
         super(RewardScaler, self).__init__(env)
         self.scale = scale
+    def step(self, action, **kwargs):
+        obs, rew, done, info = self.env.step(action, **kwargs)
+        return obs, None if rew is None else np.array(rew)*self.scale, done, info
 
     def reward(self, reward):
         if isinstance(reward, np.ndarray) or reward != None:
@@ -275,8 +278,8 @@ class AllowBacktracking(gym.Wrapper):
         self._max_x = 0
         return self.env.reset(**kwargs)
 
-    def step(self, action): # pylint: disable=E0202
-        obs, rew, done, info = self.env.step(action)
+    def step(self, action, **kwargs): # pylint: disable=E0202
+        obs, rew, done, info = self.env.step(action, **kwargs)
         self._cur_x += rew
         rew = max(0, self._cur_x - self._max_x)
         self._max_x = max(self._max_x, self._cur_x)

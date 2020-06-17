@@ -130,7 +130,7 @@ class SimpleEnv(gym.Env):
         self.action_space = gym.spaces.Box(low=0, high=0xFF, shape=shape, dtype=dtype)
         self.observation_space = self.action_space
 
-    def step(self, action):
+    def step(self, action, **kwargs):
         self._cur_obs += np.array(action, dtype=self._dtype)
         self._cur_step += 1
         done = self._cur_step >= self._max_steps

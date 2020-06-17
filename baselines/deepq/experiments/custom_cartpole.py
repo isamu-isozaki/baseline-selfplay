@@ -48,7 +48,7 @@ if __name__ == '__main__':
         for t in itertools.count():
             # Take action and update exploration to the newest value
             action = act(obs[None], update_eps=exploration.value(t))[0]
-            new_obs, rew, done, _ = env.step(action)
+            new_obs, rew, done, _ = env.step(action, **kwargs)
             # Store transition in the replay buffer.
             replay_buffer.add(obs, action, rew, new_obs, float(done))
             obs = new_obs

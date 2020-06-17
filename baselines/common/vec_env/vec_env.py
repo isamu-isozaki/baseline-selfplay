@@ -58,7 +58,7 @@ class VecEnv(ABC):
         pass
 
     @abstractmethod
-    def step_async(self, actions):
+    def step_async(self, actions, **kwargs):
         """
         Tell all the environments to start taking a step
         with the given actions.
@@ -98,13 +98,13 @@ class VecEnv(ABC):
         self.close_extras()
         self.closed = True
 
-    def step(self, actions):
+    def step(self, actions, **kwargs):
         """
         Step the environments synchronously.
 
         This is available for backwards compatibility.
         """
-        self.step_async(actions)
+        self.step_async(actions, **kwargs)
         return self.step_wait()
 
     def render(self, mode='human'):
@@ -149,8 +149,8 @@ class VecEnvWrapper(VecEnv):
                         observation_space=observation_space or venv.observation_space,
                         action_space=action_space or venv.action_space)
 
-    def step_async(self, actions):
-        self.venv.step_async(actions)
+    def step_async(self, actions, **kwargs):
+        self.venv.step_async(actions, **kwargs)
 
     @abstractmethod
     def reset(self):

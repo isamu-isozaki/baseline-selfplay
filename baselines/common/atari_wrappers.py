@@ -35,8 +35,8 @@ class NoopResetEnv(gym.Wrapper):
                 obs = self.env.reset(**kwargs)
         return obs
 
-    def step(self, ac):
-        return self.env.step(ac)
+    def step(self, action, **kwargs):
+        return self.env.step(action, **kwargs)
 
 class FireResetEnv(gym.Wrapper):
     def __init__(self, env):
@@ -55,8 +55,8 @@ class FireResetEnv(gym.Wrapper):
             self.env.reset(**kwargs)
         return obs
 
-    def step(self, ac):
-        return self.env.step(ac)
+    def step(self, action, **kwargs):
+        return self.env.step(action, **kwargs)
 
 class EpisodicLifeEnv(gym.Wrapper):
     def __init__(self, env):
@@ -67,8 +67,8 @@ class EpisodicLifeEnv(gym.Wrapper):
         self.lives = 0
         self.was_real_done  = True
 
-    def step(self, action):
-        obs, reward, done, info = self.env.step(action)
+    def step(self, action, **kwargs):
+        obs, reward, done, info = self.env.step(action, **kwargs)
         self.was_real_done = done
         # check current lives, make loss of life terminal,
         # then update lives to handle bonus lives
@@ -102,12 +102,12 @@ class MaxAndSkipEnv(gym.Wrapper):
         self._obs_buffer = np.zeros((2,)+env.observation_space.shape, dtype=np.uint8)
         self._skip       = skip
 
-    def step(self, action):
+    def step(self, action, **kwargs):
         """Repeat action, sum reward, and max over last observations."""
         total_reward = 0.0
         done = None
         for i in range(self._skip):
-            obs, reward, done, info = self.env.step(action)
+            obs, reward, done, info = self.env.step(action, **kwargs)
             if i == self._skip - 2: self._obs_buffer[0] = obs
             if i == self._skip - 1: self._obs_buffer[1] = obs
             total_reward += reward
@@ -207,8 +207,8 @@ class FrameStack(gym.Wrapper):
             self.frames.append(ob)
         return self._get_ob()
 
-    def step(self, action):
-        ob, reward, done, info = self.env.step(action)
+    def step(self, action, **kwargs):
+        ob, reward, done, info = self.env.step(action, **kwargs)
         self.frames.append(ob)
         return self._get_ob(), reward, done, info
 

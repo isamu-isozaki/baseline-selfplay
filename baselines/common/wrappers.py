@@ -6,8 +6,8 @@ class TimeLimit(gym.Wrapper):
         self._max_episode_steps = max_episode_steps
         self._elapsed_steps = 0
 
-    def step(self, ac):
-        observation, reward, done, info = self.env.step(ac)
+    def step(self, action, **kwargs):
+        observation, reward, done, info = self.env.step(action, **kwargs)
         self._elapsed_steps += 1
         if self._elapsed_steps >= self._max_episode_steps:
             done = True
@@ -19,11 +19,11 @@ class TimeLimit(gym.Wrapper):
         return self.env.reset(**kwargs)
 
 class ClipActionsWrapper(gym.Wrapper):
-    def step(self, action):
+    def step(self, action, **kwargs):
         import numpy as np
         action = np.nan_to_num(action)
         action = np.clip(action, self.action_space.low, self.action_space.high)
-        return self.env.step(action)
+        return self.env.step(action, **kwargs)
 
     def reset(self, **kwargs):
         return self.env.reset(**kwargs)

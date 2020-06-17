@@ -35,7 +35,7 @@ def test_lstm_example():
         # run a single episode until the end (i.e. until done)
         while True:
             action, _, state, _ = policy.step(ob, S=state, M=done)
-            ob, reward, done, _ = venv.step(action)
+            ob, reward, done, _ = venv.step(action, **kwargs)
             step_counter += 1
             if done:
                 break

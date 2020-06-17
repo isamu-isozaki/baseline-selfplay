@@ -70,7 +70,7 @@ def traj_segment_generator(pi, env, reward_giver, horizon, stochastic):
         prevacs[i] = prevac
 
         rew = reward_giver.get_reward(ob, ac)
-        ob, true_rew, new, _ = env.step(ac)
+        ob, true_rew, new, _ = env.step(action, **kwargs)
         rews[i] = rew
         true_rews[i] = true_rew
 

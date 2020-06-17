@@ -6,7 +6,7 @@ from .vec_env import VecEnv, CloudpickleWrapper, clear_mpi_env_vars
 
 def worker(remote, parent_remote, env_fn_wrappers):
     def step_env(env, action):
-        ob, reward, done, info = env.step(action)
+        ob, reward, done, info = env.step(**action)
         if type(done) == list and done[0]:
             ob = env.reset()
             ob = ob[0]
@@ -81,15 +81,16 @@ class SubprocVecEnv(VecEnv):
         self.viewer = None
         VecEnv.__init__(self, nenvs, observation_space, action_space)
 
-    def step_async(self, actions):
+    def step_async(self, actions, hard_code_rate=1.0, **kwargs):
         self._assert_not_closed()
         actions = np.array_split(actions, self.nremotes)
         action_in_series = []
         for j in range(len(actions)):
             for action in actions[j]:
-                action_in_series.append(action)
+                action_in_series.append({'action': action, 'hard_code_rate': hard_code_rate})
                 if(len(action_in_series) == self.in_series):
                     self.remotes[j].send(('step', action_in_series))
+                    #TODO: Update readme as now actions are sent in dictionaries
                     action_in_series = []
                 
         self.waiting = True

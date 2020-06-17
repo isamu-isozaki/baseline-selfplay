@@ -23,7 +23,7 @@ def constfn(val):
 
 def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2048, ent_coef=0.0, lr=3e-4,
             vf_coef=0.5,  max_grad_norm=0.5, gamma=0.99, lam=0.95,
-            log_interval=10, nminibatches=4, noptepochs=4, cliprange=0.2,
+            log_interval=1, nminibatches=4, noptepochs=4, cliprange=0.2,
             save_interval=0, load_path=None, model_fn=None, update_fn=None, init_fn=None, mpi_rank_weight=1, comm=None, **network_kwargs):
     '''
     Learn policy using PPO algorithm (https://arxiv.org/abs/1707.06347)
@@ -91,7 +91,7 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
     policy = build_policy(env, network, **network_kwargs)
 
     # Get the nb of env
-    nenvs = env.num_envs
+    nenvs = env.num_envs // env.sides
     nminibatches = nenvs
 
     # Get state_space and action_space
@@ -107,22 +107,24 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
     if model_fn is None:
         from baselines.ppo2.model import Model
         model_fn = Model
+    print({'ob_space': ob_space, 'ac_space': ac_space, 'nenvs': nenvs, 'nbatch_train': nbatch_train, 'nsteps': nsteps})
 
     model = model_fn(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
                     nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
-                    max_grad_norm=max_grad_norm, comm=comm, mpi_rank_weight=mpi_rank_weight)
+                    max_grad_norm=max_grad_norm, comm=comm, mpi_rank_weight=mpi_rank_weight, side=0)
     model_opponents = [model_fn(policy=policy, ob_space=ob_space, ac_space=ac_space, nbatch_act=nenvs, nbatch_train=nbatch_train,
                     nsteps=nsteps, ent_coef=ent_coef, vf_coef=vf_coef,
-                    max_grad_norm=max_grad_norm, comm=comm, mpi_rank_weight=mpi_rank_weight) for _ in range(env.sides-1)]
+                    max_grad_norm=max_grad_norm, comm=comm, mpi_rank_weight=mpi_rank_weight, side=i) for i in range(1, env.sides)]
     #Added opponents
     if load_path is not None:
         model.load(load_path)
     # Instantiate the runner object
-    runner = Runner(env=env, model=model, model_opponent=model_opponents, nsteps=nsteps, gamma=gamma, lam=lam)
+    runner = Runner(env=env, model=model, model_opponents=model_opponents, nsteps=nsteps, gamma=gamma, lam=lam)
     if eval_env is not None:
-        eval_runner = Runner(env = eval_env, model = model, nsteps = nsteps, gamma = gamma, lam= lam)
+        eval_runner = Runner(env = eval_env, model = model, model_opponents=model_opponents, nsteps = nsteps, gamma = gamma, lam= lam)
 
     epinfobuf = deque(maxlen=100)
+    opponents_epinfobuf = [deque(maxlen=100) for _ in range(env.sides)]
     if eval_env is not None:
         eval_epinfobuf = deque(maxlen=100)
 
@@ -146,13 +148,15 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
         if update % log_interval == 0 and is_mpi_root: logger.info('Stepping environment...')
 
         # Get minibatch
-        obs, returns, masks, actions, values, neglogpacs, states, epinfos, mean_reward = runner.run() #pylint: disable=E0632
+        obs, returns, masks, actions, values, neglogpacs, states, epinfos = runner.run(1-(update-1)/nupdates) #pylint: disable=E0632
         if eval_env is not None:
-            eval_obs, eval_returns, eval_masks, eval_actions, eval_values, eval_neglogpacs, eval_states, eval_epinfos = eval_runner.run() #pylint: disable=E0632
+            eval_obs, eval_returns, eval_masks, eval_actions, eval_values, eval_neglogpacs, eval_states, eval_epinfos = eval_runner.run(1-(update-1)/nupdates) #pylint: disable=E0632
 
         if update % log_interval == 0 and is_mpi_root: logger.info('Done.')
 
-        epinfobuf.extend(epinfos)
+        epinfobuf.extend(epinfos[0::env.sides])
+        for i in range(env.sides-1):
+            opponents_epinfobuf[i].extend(epinfos[i+1::env.sides])
         if eval_env is not None:
             eval_epinfobuf.extend(eval_epinfos)
 
@@ -207,18 +211,17 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
             logger.logkv("fps", fps)
             logger.logkv("misc/explained_variance", float(ev))
             wandb_log_dic["misc/explained_variance"] = float(ev)
-            logger.logkv('eprewmean', safemean([epinfo['r'] for epinfo in epinfobuf]))
-            wandb_log_dic['eprewmean'] = safemean([epinfo['r'] for epinfo in epinfobuf])
-            logger.logkv('eplenmean', safemean([epinfo['l'] for epinfo in epinfobuf]))
-            wandb_log_dic['eplenmean'] = safemean([epinfo['l'] for epinfo in epinfobuf])
-            logger.logkv['mean_reward'] = mean_reward
-            wandb_log_dic['mean_reward'] = mean_reward
             if eval_env is not None:
                 logger.logkv('eval_eprewmean', safemean([epinfo['r'] for epinfo in eval_epinfobuf]) )
                 wandb_log_dic['eval_eprewmean'] = safemean([epinfo['r'] for epinfo in eval_epinfobuf])
                 logger.logkv('eval_eplenmean', safemean([epinfo['l'] for epinfo in eval_epinfobuf]) )
                 wandb_log_dic['eval_eplenmean'] = safemean([epinfo['l'] for epinfo in eval_epinfobuf])
-
+            for key in epinfobuf[0]:
+                logger.logkv('ep_'+key+'_mean', safemean([epinfo[key] for epinfo in epinfobuf]))
+            for i in range(env.sides-1):
+                for key in epinfobuf[0]:
+                    logger.logkv(f'opponent_{i}_ep_'+key+'_mean', safemean([epinfo[key] for epinfo in opponents_epinfobuf[i]]))
+            
             logger.logkv('misc/time_elapsed', tnow - tfirststart)
             for (lossval, lossname) in zip(lossvals, model.loss_names):
                 logger.logkv('loss/' + lossname, lossval)

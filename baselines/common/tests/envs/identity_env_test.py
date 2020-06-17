@@ -8,7 +8,7 @@ def test_discrete_nodelay():
     ob = env.reset()
     for t in range(nsteps):
         action = env.action_space.sample()
-        next_ob, rew, done, info = env.step(action)
+        next_ob, rew, done, info = env.step(action, **kwargs)
         assert rew == (1 if action == ob else 0)
         if (t + 1) % eplen == 0:
             assert done
@@ -24,7 +24,7 @@ def test_discrete_delay1():
     prev_ob = None
     for t in range(eplen):
         action = env.action_space.sample()
-        next_ob, rew, done, info = env.step(action)
+        next_ob, rew, done, info = env.step(action, **kwargs)
         if t > 0:
             assert rew == (1 if action == prev_ob else 0)
         else:

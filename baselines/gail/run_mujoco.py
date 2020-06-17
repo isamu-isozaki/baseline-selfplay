@@ -216,7 +216,7 @@ def traj_1_generator(pi, env, horizon, stochastic):
         news.append(new)
         acs.append(ac)
 
-        ob, rew, new, _ = env.step(ac)
+        ob, rew, new, _ = env.step(action, **kwargs)
         rews.append(rew)
 
         cur_ep_ret += rew
