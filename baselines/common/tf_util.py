@@ -5,6 +5,7 @@ import os
 import functools
 import collections
 import multiprocessing
+import re
 
 def switch(condition, then_expression, else_expression):
     """Switches between two operations depending on a scalar value (int or bool).
@@ -354,7 +355,7 @@ def save_variables(save_path, variables=None, sess=None):
         os.makedirs(dirname, exist_ok=True)
     joblib.dump(save_dict, save_path)
 
-def load_variables(load_path, variables=None, sess=None):
+def load_variables(load_path, variables=None, sess=None, root_name=None, replace_name=None):
     import joblib
     sess = sess or get_session()
     variables = variables or tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
@@ -364,10 +365,20 @@ def load_variables(load_path, variables=None, sess=None):
     if isinstance(loaded_params, list):
         assert len(loaded_params) == len(variables), 'number of variables loaded mismatches len(variables)'
         for d, v in zip(loaded_params, variables):
-            restores.append(v.assign(d))
+            if root_name != None and replace_name != None:
+                if root_name not in d:
+                    continue
+                restores.append(v.assign(re.sub(root_name, replace_name, d)))
+            else:
+                restores.append(v.assign(d))
     else:
         for v in variables:
-            restores.append(v.assign(loaded_params[v.name]))
+            if root_name != None and replace_name != None:
+                if root_name not in v.name:#don't reload model0
+                    continue
+                restores.append(v.assign(loaded_params[re.sub(root_name, replace_name,v.name)]))
+            else:
+                restores.append(v.assign(loaded_params[v.name]))
 
     sess.run(restores)
 

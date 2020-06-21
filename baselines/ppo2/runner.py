@@ -21,13 +21,15 @@ class Runner(AbstractEnvRunner):
         self.gamma = gamma
         self.paths = []
     def run(self, hard_code_rate=1.0):
+        import gc
+        gc.collect()
         debug = False
         # Here, we init the lists that will contain the mb of experiences
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
         mb_states = self.states
         epinfos = []
         for i in range(len(self.model_opponents)):
-            self.model_opponents[i].load_from_random(self.paths)#Opponent has a random policy
+            self.model_opponents[i].load_from_random(self.paths, i+1)#Opponent has a random policy
         # For n in range number of steps
         for _ in tqdm(range(self.nsteps)):
             if debug:

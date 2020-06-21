@@ -162,6 +162,7 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
 
         # Here what we're going to do is for each minibatch calculate the loss and append it.
         mblossvals = []
+        # mb_opponent_lossvals = []
         if states is None: # nonrecurrent version
             # Index of each element of batch_size
             # Create the indices array
@@ -175,6 +176,10 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
                     mbinds = inds[start:end]
                     slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices))
+                    # mb_opponent_lossval = []
+                    # for i in range(env.sides-1):
+                    #     mb_opponent_lossval.append(model_opponents[i].train(lrnow, cliprangenow, *slices))
+                    # mb_opponent_lossvals.append(mb_opponent_lossval)
         else: # recurrent version
             assert nenvs % nminibatches == 0
             envsperbatch = nenvs // nminibatches
@@ -189,6 +194,10 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
                     slices = (arr[mbflatinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                     mbstates = states[mbenvinds]
                     mblossvals.append(model.train(lrnow, cliprangenow, *slices, mbstates))
+                    # mb_opponent_lossval = []
+                    # for i in range(env.sides-1):
+                    #     mb_opponent_lossval.append(model_opponents[i].train(lrnow, cliprangenow, *slices, mbstates))
+                    # mb_opponent_lossvals.append(mb_opponent_lossval)
 
         # Feedforward --> get losses --> update
         lossvals = np.mean(mblossvals, axis=0)
@@ -234,6 +243,7 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
             print('Saving to', savepath)
             runner.save(savepath)
             model = runner.model
+            model_opponents = runner.model_opponents
 
     return model
 # Avoid division error when calculate the mean (in our case if epinfo is empty returns np.nan, not return an error)

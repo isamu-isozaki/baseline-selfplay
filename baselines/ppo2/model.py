@@ -129,10 +129,11 @@ class Model(object):
         global_variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="")
         if MPI is not None:
             sync_from_root(sess, global_variables, comm=comm) #pylint: disable=E1101
-    def load_from_random(self, files):
+    def load_from_random(self, files, side):
         if len(files) == 0:
             return
-        self.load(random.choice(files))
+        #Goal replace 'ppo2_model_{side}' with 'ppo2_model_0' and load
+        self.load(random.choice(files), root_name=f'ppo2_model_{side}', replace_name='ppo2_model_0')
     def train(self, lr, cliprange, obs, returns, masks, actions, values, neglogpacs, states=None):
         # Here we calculate advantage A(s,a) = R + yV(s') - V(s)
         # Returns = R + yV(s')
