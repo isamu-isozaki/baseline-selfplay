@@ -134,6 +134,16 @@ class Model(object):
             return
         #Goal replace 'ppo2_model_{side}' with 'ppo2_model_0' and load
         self.load(random.choice(files), root_name=f'ppo2_model_{side}', replace_name='ppo2_model_0')
+    def load_latest(self, files, side):
+        if len(files) == 0:
+            return
+        #Goal replace 'ppo2_model_{side}' with 'ppo2_model_0' and load
+        self.load(files[-1], root_name=f'ppo2_model_{side}', replace_name='ppo2_model_0')
+    def load_initial(self, files, side):
+        if len(files) == 0:
+            return
+        #Goal replace 'ppo2_model_{side}' with 'ppo2_model_0' and load
+        self.load(files[0], root_name=f'ppo2_model_{side}', replace_name='ppo2_model_0')
     def train(self, lr, cliprange, obs, returns, masks, actions, values, neglogpacs, states=None):
         # Here we calculate advantage A(s,a) = R + yV(s') - V(s)
         # Returns = R + yV(s')

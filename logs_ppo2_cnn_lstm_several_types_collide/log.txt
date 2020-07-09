@@ -1,1 +1,0 @@
-Logging to logs_ppo2_cnn_lstm_several_types_collide

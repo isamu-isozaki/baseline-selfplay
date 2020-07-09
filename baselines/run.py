@@ -2,6 +2,7 @@ import sys
 import re
 import multiprocessing
 import os.path as osp
+import os
 import gym
 from collections import defaultdict
 import tensorflow as tf
@@ -218,15 +219,20 @@ def main(args):
     else:
         rank = MPI.COMM_WORLD.Get_rank()
         configure_logger(args.log_path, format_strs=[])
-
+    if args.play:
+        args.num_timesteps = 0
+        args.num_env = 1
     model, env = train(args, extra_args)
 
-    if args.save_path is not None and rank == 0:
-        save_path = osp.expanduser(args.save_path)
-        model.save(save_path)
 
     if args.play:
         logger.log("Running trained model")
+        checkdir = osp.join(logger.get_dir(), 'checkpoints')
+        paths = os.listdir(checkdir)
+        model.load(paths[-1])
+        env_type, env_id = get_env_type(args)
+        print('env_type: {}'.format(env_type))
+        env = build_env(args)
         obs = env.reset()
 
         state = model.initial_state if hasattr(model, 'initial_state') else None
@@ -239,7 +245,7 @@ def main(args):
             else:
                 actions, _, _, _ = model.step(obs)
 
-            obs, rew, done, _ = env.step(actions)
+            obs, rew, done, _ = env.step(actions, play=True)
             episode_rew += rew
             env.render()
             done_any = done.any() if isinstance(done, np.ndarray) else done
@@ -247,6 +253,10 @@ def main(args):
                 for i in np.nonzero(done)[0]:
                     print('episode_rew={}'.format(episode_rew[i]))
                     episode_rew[i] = 0
+    else:
+        if args.save_path is not None and rank == 0:
+            save_path = osp.expanduser(args.save_path)
+            model.save(save_path)
 
     env.close()
 
