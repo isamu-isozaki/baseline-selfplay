@@ -29,7 +29,7 @@ class Runner(AbstractEnvRunner):
         mb_states = self.states
         epinfos = []
         for i in range(len(self.model_opponents)):
-            self.model_opponents[i].load_from_random(self.paths, i+1)#Opponent has a random policy
+            self.model_opponents[i].load_initial(self.paths, i+1)#Opponent has a random policy
         # For n in range number of steps
         for _ in tqdm(range(self.nsteps)):
             if debug:

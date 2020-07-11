@@ -141,7 +141,7 @@ def arg_parser():
     Create an empty argparse.ArgumentParser.
     """
     import argparse
-    return argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    return argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter, allow_abbrev=False)
 
 def atari_arg_parser():
     """

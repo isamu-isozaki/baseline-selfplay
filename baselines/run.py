@@ -229,22 +229,22 @@ def main(args):
         logger.log("Running trained model")
         checkdir = osp.join(logger.get_dir(), 'checkpoints')
         paths = os.listdir(checkdir)
-        model.load(paths[-1])
-        env_type, env_id = get_env_type(args)
-        print('env_type: {}'.format(env_type))
-        env = build_env(args)
+        model.load(osp.join(checkdir, paths[-1]))
         obs = env.reset()
 
         state = model.initial_state if hasattr(model, 'initial_state') else None
         dones = np.zeros((1,))
 
         episode_rew = np.zeros(env.num_envs) if isinstance(env, VecEnv) else np.zeros(1)
+
+
         while True:
             if state is not None:
                 actions, _, state, _ = model.step(obs,S=state, M=dones)
             else:
                 actions, _, _, _ = model.step(obs)
-
+            #Set interact side to always be 1
+            print("Sending actions")
             obs, rew, done, _ = env.step(actions, play=True)
             episode_rew += rew
             env.render()
@@ -263,5 +263,4 @@ def main(args):
     return model
 
 if __name__ == '__main__':
-    print(sys.argv)
     main(sys.argv)

@@ -115,6 +115,7 @@ class SubprocVecEnv(VecEnv):
         return _flatten_obs(obs), np.stack(rews), np.stack(dones), infos
 
     def reset(self):
+        print("Called reset")
         self._assert_not_closed()
         for i in range(len(self.remotes)):
             self.remotes[i].send(('reset', None))
