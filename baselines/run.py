@@ -229,6 +229,7 @@ def main(args):
         logger.log("Running trained model")
         checkdir = osp.join(logger.get_dir(), 'checkpoints')
         paths = os.listdir(checkdir)
+        print(f"loading model: {paths[-1]}")
         model.load(osp.join(checkdir, paths[-1]))
         obs = env.reset()
 
@@ -240,14 +241,15 @@ def main(args):
 
         while True:
             if state is not None:
-                actions, _, state, _ = model.step(obs,S=state, M=dones)
+                actions, _, state, _ = model.step(obs[0],S=state, M=dones)
             else:
-                actions, _, _, _ = model.step(obs)
+                actions, _, _, _ = model.step(obs[0])
             #Set interact side to always be 1
-            print("Sending actions")
+            placeholder_action = np.zeros_like(actions)
+            actions = np.concatenate([actions,placeholder_action], axis=0)
             obs, rew, done, _ = env.step(actions, play=True)
             episode_rew += rew
-            env.render()
+            # env.render()
             done_any = done.any() if isinstance(done, np.ndarray) else done
             if done_any:
                 for i in np.nonzero(done)[0]:

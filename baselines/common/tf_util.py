@@ -367,6 +367,7 @@ def load_variables(load_path, variables=None, sess=None, root_name=None, replace
         for d, v in zip(loaded_params, variables):
             if root_name != None and replace_name != None:
                 if root_name not in d:
+                    restores.append(v)
                     continue
                 restores.append(v.assign(re.sub(root_name, replace_name, d)))
             else:
@@ -375,6 +376,7 @@ def load_variables(load_path, variables=None, sess=None, root_name=None, replace
         for v in variables:
             if root_name != None and replace_name != None:
                 if root_name not in v.name:#don't reload model0
+                    restores.append(v)
                     continue
                 restores.append(v.assign(loaded_params[re.sub(root_name, replace_name,v.name)]))
             else:

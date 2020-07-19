@@ -87,7 +87,7 @@ class SubprocVecEnv(VecEnv):
         action_in_series = []
         for j in range(len(actions)):
             for action in actions[j]:
-                action_in_series.append({'action': action, 'hard_code_rate': hard_code_rate})
+                action_in_series.append({'action': action, 'hard_code_rate': hard_code_rate, **kwargs})
                 if(len(action_in_series) == self.in_series):
                     self.remotes[j].send(('step', action_in_series))
                     #TODO: Update readme as now actions are sent in dictionaries
