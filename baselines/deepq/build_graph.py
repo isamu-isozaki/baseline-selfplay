@@ -178,7 +178,7 @@ def build_act(make_obs_ph, q_func, num_actions, scope="deepq", reuse=None):
         stochastic_ph = tf.placeholder(tf.bool, (), name="stochastic")
         update_eps_ph = tf.placeholder(tf.float32, (), name="update_eps")
 
-        eps = tf.get_variable("eps", (), initializer=tf.constant_initializer(0))
+        eps = tf.get_variable("eps", (), initializer=tf.constant_initializer(0), dtype=tf.float32)
 
         q_values = q_func(observations_ph.get(), num_actions, scope="q_func")
         deterministic_actions = tf.argmax(q_values, axis=1)
@@ -243,9 +243,9 @@ def build_act_with_param_noise(make_obs_ph, q_func, num_actions, scope="deepq", 
         update_param_noise_scale_ph = tf.placeholder(tf.bool, (), name="update_param_noise_scale")
         reset_ph = tf.placeholder(tf.bool, (), name="reset")
 
-        eps = tf.get_variable("eps", (), initializer=tf.constant_initializer(0))
-        param_noise_scale = tf.get_variable("param_noise_scale", (), initializer=tf.constant_initializer(0.01), trainable=False)
-        param_noise_threshold = tf.get_variable("param_noise_threshold", (), initializer=tf.constant_initializer(0.05), trainable=False)
+        eps = tf.get_variable("eps", (), initializer=tf.constant_initializer(0), dtype=tf.float32)
+        param_noise_scale = tf.get_variable("param_noise_scale", (), initializer=tf.constant_initializer(0.01), trainable=False, dtype=tf.float32)
+        param_noise_threshold = tf.get_variable("param_noise_threshold", (), initializer=tf.constant_initializer(0.05), trainable=False, dtype=tf.float32)
 
         # Unmodified Q.
         q_values = q_func(observations_ph.get(), num_actions, scope="q_func")
@@ -263,7 +263,7 @@ def build_act_with_param_noise(make_obs_ph, q_func, num_actions, scope="deepq", 
             for var, perturbed_var in zip(all_vars, all_perturbed_vars):
                 if param_noise_filter_func(perturbed_var):
                     # Perturb this variable.
-                    op = tf.assign(perturbed_var, var + tf.random_normal(shape=tf.shape(var), mean=0., stddev=param_noise_scale))
+                    op = tf.assign(perturbed_var, var + tf.random_normal(shape=tf.shape(var), mean=0., stddev=param_noise_scale, dtype=tf.float32))
                 else:
                     # Do not perturb, just assign.
                     op = tf.assign(perturbed_var, var)

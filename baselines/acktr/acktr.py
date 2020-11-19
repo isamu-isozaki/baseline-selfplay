@@ -46,7 +46,7 @@ class Model(object):
 
         ##Fisher loss construction
         self.pg_fisher = pg_fisher_loss = -tf.reduce_mean(neglogpac)
-        sample_net = train_model.vf + tf.random_normal(tf.shape(train_model.vf))
+        sample_net = train_model.vf + tf.random_normal(tf.shape(train_model.vf), dtype=tf.float32)
         self.vf_fisher = vf_fisher_loss = - vf_fisher_coef*tf.reduce_mean(tf.pow(train_model.vf - tf.stop_gradient(sample_net), 2))
         self.joint_fisher = joint_fisher_loss = pg_fisher_loss + vf_fisher_loss
 
@@ -60,7 +60,7 @@ class Model(object):
                 stats_decay=0.99, is_async=is_async, cold_iter=10, max_grad_norm=max_grad_norm)
 
             # update_stats_op = optim.compute_and_apply_stats(joint_fisher_loss, var_list=params)
-            optim.compute_and_apply_stats(joint_fisher_loss, var_list=params)
+            optim.compute_and_apply_stats(joint_fisher_loss, var_list=params)s
             train_op, q_runner = optim.apply_gradients(list(zip(grads,params)))
         self.q_runner = q_runner
         self.lr = Scheduler(v=lr, nvalues=total_timesteps, schedule=lrschedule)

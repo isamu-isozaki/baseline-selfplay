@@ -119,9 +119,9 @@ def conv2d(x, num_filters, name, filter_size=(3, 3), stride=(1, 1), pad="SAME", 
         w_bound = np.sqrt(6. / (fan_in + fan_out))
 
         w = tf.get_variable("W", filter_shape, dtype, tf.random_uniform_initializer(-w_bound, w_bound),
-                            collections=collections)
+                            collections=collections, dtype=tf.float32)
         b = tf.get_variable("b", [1, 1, 1, num_filters], initializer=tf.zeros_initializer(),
-                            collections=collections)
+                            collections=collections, dtype=tf.float32)
 
         if summary_tag is not None:
             tf.summary.image(summary_tag,

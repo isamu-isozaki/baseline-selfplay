@@ -211,7 +211,7 @@ def cnn_lstm(nlstm=128, layer_norm=False, conv_fn=nature_cnn, **conv_kwargs):
     return network_fn
 
 @register("impala_cnn_lstm")
-def impala_cnn_lstm():
+def impala_cnn_lstm(**kwargs):
     return cnn_lstm(nlstm=256, conv_fn=build_impala_cnn)
 
 @register("cnn_lnlstm")
@@ -243,8 +243,7 @@ def conv_only(convs=[(32, 8, 4), (64, 4, 2), (64, 3, 1)], **conv_kwargs):
                                            num_outputs=num_outputs,
                                            kernel_size=kernel_size,
                                            stride=stride,
-                                           activation_fn=tf.nn.relu,
-                                           **conv_kwargs)
+                                           activation_fn=tf.nn.relu)
 
         return out
     return network_fn

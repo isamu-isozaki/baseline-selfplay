@@ -12,7 +12,7 @@ KFAC_DEBUG = False
 
 class KfacOptimizer():
     # note that KfacOptimizer will be truly synchronous (and thus deterministic) only if a single-threaded session is used
-    def __init__(self, learning_rate=0.01, momentum=0.9, clip_kl=0.01, kfac_update=2, stats_accum_iter=60, full_stats_init=False, cold_iter=100, cold_lr=None, is_async=False, async_stats=False, epsilon=1e-2, stats_decay=0.95, blockdiag_bias=False, channel_fac=False, factored_damping=False, approxT2=False, use_float64=False, weight_decay_dict={},max_grad_norm=0.5):
+    def __init__(self, learning_rate=0.01, momentum=0.9, clip_kl=0.01, kfac_update=2, stats_accum_iter=60, full_stats_init=False, cold_iter=100, cold_lr=None, is_async=False, async_stats=False, epsilon=1e-2, stats_decay=0.95, blockdiag_bias=False, channel_fac=False, factored_damping=False, approxT2=False, use_float32=False, weight_decay_dict={},max_grad_norm=0.5):
         self.max_grad_norm = max_grad_norm
         self._lr = learning_rate
         self._momentum = momentum
@@ -25,7 +25,7 @@ class KfacOptimizer():
         self._stats_decay = stats_decay
         self._blockdiag_bias = blockdiag_bias
         self._approxT2 = approxT2
-        self._use_float64 = use_float64
+        self._use_float32 = use_float32
         self._factored_damping = factored_damping
         self._cold_iter = cold_iter
         if cold_lr == None:
@@ -554,9 +554,9 @@ class KfacOptimizer():
                 for item in var_list:
                     if item is not None:
                         if item not in redundant_stats:
-                            if self._use_float64:
+                            if self._use_float32:
                                 redundant_stats[item] = tf.cast(
-                                    tf.identity(item), tf.float64)
+                                    tf.identity(item), tf.float32)
                             else:
                                 redundant_stats[item] = tf.identity(item)
                         copied_list.append(redundant_stats[item])
@@ -579,7 +579,7 @@ class KfacOptimizer():
                         eigens = tf.self_adjoint_eig(stats_var)
                         e = eigens[0]
                         Q = eigens[1]
-                        if self._use_float64:
+                        if self._use_float32:
                             e = tf.cast(e, tf.float32)
                             Q = tf.cast(Q, tf.float32)
                         updateOps.append(e)
