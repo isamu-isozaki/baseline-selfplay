@@ -60,7 +60,7 @@ class Model(object):
                 stats_decay=0.99, is_async=is_async, cold_iter=10, max_grad_norm=max_grad_norm)
 
             # update_stats_op = optim.compute_and_apply_stats(joint_fisher_loss, var_list=params)
-            optim.compute_and_apply_stats(joint_fisher_loss, var_list=params)s
+            optim.compute_and_apply_stats(joint_fisher_loss, var_list=params)
             train_op, q_runner = optim.apply_gradients(list(zip(grads,params)))
         self.q_runner = q_runner
         self.lr = Scheduler(v=lr, nvalues=total_timesteps, schedule=lrschedule)
