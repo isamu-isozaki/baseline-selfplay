@@ -74,8 +74,8 @@ def one_sided_ema(xolds, yolds, low=None, high=None, n=512, decay_steps=1., low_
     assert len(xolds) == len(yolds), 'length of xolds ({}) and yolds ({}) do not match!'.format(len(xolds), len(yolds))
 
 
-    xolds = xolds.astype('float64')
-    yolds = yolds.astype('float64')
+    xolds = xolds.astype('float32')
+    yolds = yolds.astype('float32')
 
     luoi = 0 # last unused old index
     sum_y = 0.

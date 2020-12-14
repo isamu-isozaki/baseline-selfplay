@@ -18,7 +18,7 @@ def fmt_item(x, l):
     if isinstance(x, np.ndarray):
         assert x.ndim==0
         x = x.item()
-    if isinstance(x, (float, np.float32, np.float64)):
+    if isinstance(x, (float, np.float32, np.float32)):
         v = abs(x)
         if (v < 1e-4 or v > 1e+4) and v > 0:
             rep = "%7.2e" % x

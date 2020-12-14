@@ -8,7 +8,7 @@ from collections import defaultdict
 import tensorflow as tf
 import numpy as np
 import tactic_game_gym
-
+import traceback
 from baselines.common.vec_env import VecFrameStack, VecNormalize, VecEnv
 from baselines.common.vec_env.vec_video_recorder import VecVideoRecorder
 from baselines.common.cmd_util import common_arg_parser, parse_unknown_args, make_vec_env, make_env

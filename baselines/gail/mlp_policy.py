@@ -45,7 +45,7 @@ class MlpPolicy(object):
 
         if gaussian_fixed_var and isinstance(ac_space, gym.spaces.Box):
             mean = dense(last_out, pdtype.param_shape()[0]//2, "polfinal", U.normc_initializer(0.01))
-            logstd = tf.get_variable(name="logstd", shape=[1, pdtype.param_shape()[0]//2], initializer=tf.zeros_initializer())
+            logstd = tf.get_variable(name="logstd", shape=[1, pdtype.param_shape()[0]//2], initializer=tf.zeros_initializer(), dtype=tf.float32)
             pdparam = tf.concat([mean, mean * 0.0 + logstd], axis=1)
         else:
             pdparam = dense(last_out, pdtype.param_shape()[0], "polfinal", U.normc_initializer(0.01))

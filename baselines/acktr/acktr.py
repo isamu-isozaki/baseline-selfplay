@@ -46,7 +46,7 @@ class Model(object):
 
         ##Fisher loss construction
         self.pg_fisher = pg_fisher_loss = -tf.reduce_mean(neglogpac)
-        sample_net = train_model.vf + tf.random_normal(tf.shape(train_model.vf))
+        sample_net = train_model.vf + tf.random_normal(tf.shape(train_model.vf), dtype=tf.float32)
         self.vf_fisher = vf_fisher_loss = - vf_fisher_coef*tf.reduce_mean(tf.pow(train_model.vf - tf.stop_gradient(sample_net), 2))
         self.joint_fisher = joint_fisher_loss = pg_fisher_loss + vf_fisher_loss
 

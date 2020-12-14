@@ -5,8 +5,8 @@ from baselines.common.tf_util import get_session
 class RunningMeanStd(object):
     # https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Parallel_algorithm
     def __init__(self, epsilon=1e-4, shape=()):
-        self.mean = np.zeros(shape, 'float64')
-        self.var = np.ones(shape, 'float64')
+        self.mean = np.zeros(shape, 'float32')
+        self.var = np.ones(shape, 'float32')
         self.count = epsilon
 
     def update(self, x):
@@ -42,15 +42,15 @@ class TfRunningMeanStd(object):
     def __init__(self, epsilon=1e-4, shape=(), scope=''):
         sess = get_session()
 
-        self._new_mean = tf.placeholder(shape=shape, dtype=tf.float64)
-        self._new_var = tf.placeholder(shape=shape, dtype=tf.float64)
-        self._new_count = tf.placeholder(shape=(), dtype=tf.float64)
+        self._new_mean = tf.placeholder(shape=shape, dtype=tf.float32)
+        self._new_var = tf.placeholder(shape=shape, dtype=tf.float32)
+        self._new_count = tf.placeholder(shape=(), dtype=tf.float32)
 
 
         with tf.variable_scope(scope, reuse=tf.AUTO_REUSE):
-            self._mean  = tf.get_variable('mean',  initializer=np.zeros(shape, 'float64'),      dtype=tf.float64)
-            self._var   = tf.get_variable('std',   initializer=np.ones(shape, 'float64'),       dtype=tf.float64)
-            self._count = tf.get_variable('count', initializer=np.full((), epsilon, 'float64'), dtype=tf.float64)
+            self._mean  = tf.get_variable('mean',  initializer=np.zeros(shape, 'float32'),      dtype=tf.float32)
+            self._var   = tf.get_variable('std',   initializer=np.ones(shape, 'float32'),       dtype=tf.float32)
+            self._count = tf.get_variable('count', initializer=np.full((), epsilon, 'float32'), dtype=tf.float32)
 
         self.update_ops = tf.group([
             self._var.assign(self._new_var),

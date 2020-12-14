@@ -55,7 +55,7 @@ def get_perturbed_actor_updates(actor, perturbed_actor, param_noise_stddev):
     for var, perturbed_var in zip(actor.vars, perturbed_actor.vars):
         if var in actor.perturbable_vars:
             logger.info('  {} <- {} + noise'.format(perturbed_var.name, var.name))
-            updates.append(tf.assign(perturbed_var, var + tf.random_normal(tf.shape(var), mean=0., stddev=param_noise_stddev)))
+            updates.append(tf.assign(perturbed_var, var + tf.random_normal(tf.shape(var), mean=0., stddev=param_noise_stddev), dtype=tf.float32))
         else:
             logger.info('  {} <- {}'.format(perturbed_var.name, var.name))
             updates.append(tf.assign(perturbed_var, var))
