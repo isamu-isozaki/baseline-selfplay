@@ -32,7 +32,6 @@ class PolicyWithValue(object):
         **tensors       tensorflow tensors for additional attributes such as state or mask
 
         """
-
         self.X = observations
         self.state = tf.constant([])
         self.initial_state = None
@@ -129,7 +128,6 @@ def build_policy(env, policy_network, value_network=None,  normalize_observation
         X = observ_placeholder if observ_placeholder is not None else observation_placeholder(ob_space, batch_size=nbatch)
 
         extra_tensors = {}
-
         if normalize_observations and X.dtype == tf.float32:
             encoded_x, rms = _normalize_clip_observation(X)
             extra_tensors['rms'] = rms
@@ -149,7 +147,6 @@ def build_policy(env, policy_network, value_network=None,  normalize_observation
                     assert nenv > 0, 'Bad input for recurrent policy: batch size {} smaller than nsteps {}'.format(nbatch, nsteps)
                     policy_latent, recurrent_tensors = policy_network(encoded_x, nenv)
                     extra_tensors.update(recurrent_tensors)
-
 
         _v_net = value_network
 

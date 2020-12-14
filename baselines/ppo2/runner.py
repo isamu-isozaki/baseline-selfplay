@@ -44,6 +44,9 @@ class Runner(AbstractEnvRunner):
                 print(f'states shape: {self.states.shape}')
                 print(f'dones shape: {np.array(self.dones).shape}')
             actions, values, self.states, neglogpacs = self.model.step(self.obs[0::self.env.sides], S=self.states, M=self.dones[0::self.env.sides])
+            #print(f"actions nan: {np.isnan(actions).any()} values nan: {np.isnan(values).any()} states nan: {np.isnan(self.states).any()}")
+            # print(f"actions nan: {np.isnan(np.sum(actions))} action inf: {np.isinf(np.sum(actions))} values nan: {np.isnan(np.sum(values))} value inf: {np.isinf(np.sum(values))}")
+            
             #self.states contains initial state of 
             if debug:
                 print(f'actions: {actions.shape}')
@@ -88,6 +91,8 @@ class Runner(AbstractEnvRunner):
             # Take actions in env and look the results
             # Infos contains a ton of useful informations
             self.obs[:], rewards, self.dones, infos = self.env.step(full_actions, hard_code_rate=hard_code_rate)
+            # print(f"obs nan: {np.isnan(np.sum(self.obs))} obs inf: {np.isinf(np.sum(self.obs))} rewards nan: {np.isnan(np.sum(rewards))} rewards inf: {np.isinf(np.sum(rewards))}")
+
             # print(f"obs max: {self.obs.max()}")
             self.obs[:] += 1e-3
             

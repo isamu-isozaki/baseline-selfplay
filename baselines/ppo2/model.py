@@ -1,4 +1,6 @@
 import tensorflow as tf
+# from tensorflow.python import debug as tf_debug
+
 import functools
 
 from baselines.common.tf_util import get_session, save_variables, load_variables
@@ -26,8 +28,11 @@ class Model(object):
     """
     def __init__(self, *, policy, ob_space, ac_space, nbatch_act, nbatch_train,
                 nsteps, ent_coef, vf_coef, max_grad_norm, mpi_rank_weight=1, comm=None, microbatch_size=None, side=0):
-        self.sess = sess = get_session()
+        # self.sess = sess = tf_debug.LocalCLIDebugWrapperSession(get_session())
 
+        # sess.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
+        # self.sess.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
+        self.sess = sess = get_session()
         if MPI is not None and comm is None:
             comm = MPI.COMM_WORLD
 
@@ -59,6 +64,9 @@ class Model(object):
         # Calculate the entropy
         # Entropy is used to improve exploration by limiting the premature convergence to suboptimal policy.
         entropy = tf.reduce_mean(train_model.pd.entropy())
+        # action_mean = train_model.pd.mean
+        # action_std = train_model.pd.std
+        # action_logstd = train_model.pd.logstd
 
         # CALCULATE THE LOSS
         # Total loss = Policy gradient loss - entropy * entropy coefficient + Value coefficient * value loss
@@ -112,8 +120,8 @@ class Model(object):
         self.grads = grads
         self.var = var
         self._train_op = self.trainer.apply_gradients(grads_and_var)
-        self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac']
-        self.stats_list = [pg_loss, vf_loss, entropy, approxkl, clipfrac]
+        self.loss_names = ['policy_loss', 'value_loss', 'policy_entropy', 'approxkl', 'clipfrac', 'ratio mean', 'neglogpac mean', 'oldneglogpac mean']
+        self.stats_list = [pg_loss, vf_loss, entropy, approxkl, clipfrac, tf.reduce_mean(ratio), tf.reduce_mean(neglogpac), tf.reduce_mean(OLDNEGLOGPAC)]
 
 
         self.train_model = train_model
@@ -147,11 +155,17 @@ class Model(object):
     def train(self, lr, cliprange, obs, returns, masks, actions, values, neglogpacs, states=None):
         # Here we calculate advantage A(s,a) = R + yV(s') - V(s)
         # Returns = R + yV(s')
+        # print(f"values mean: {values.mean()} values std: {values.std()} values max: {values.max()}")
+        # print(f"returns mean: {returns.mean()} returns std: {returns.std()} returns max: {returns.max()}")
+
         advs = returns - values
 
         # Normalize the advantages
-        advs = (advs - advs.mean()) / (advs.std() + 1e-8)
+        advs = (advs - advs.mean()) / (advs.std() + 1e-3)
+        # print(f"advantage mean: {advs.mean()} std: {advs.std()} max: {advs.max()} min: {advs.min()}")
+        # print(f"neglocpac mean: {neglogpacs.mean()} std: {neglogpacs.std()} max: {neglogpacs.max()} min: {neglogpacs.min()}")
 
+        # print(f"action mean: {actions.mean()} action std: {actions.std()}")
         td_map = {
             self.train_model.X : obs,
             self.A : actions,
@@ -165,7 +179,6 @@ class Model(object):
         if states is not None:
             td_map[self.train_model.S] = states
             td_map[self.train_model.M] = masks
-
         return self.sess.run(
             self.stats_list + [self._train_op],
             td_map
