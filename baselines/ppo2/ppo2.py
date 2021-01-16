@@ -125,10 +125,10 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
     if eval_env is not None:
         eval_runner = Runner(env = eval_env, model = model, model_opponents=model_opponents, nsteps = nsteps, gamma = gamma, lam= lam)
 
-    epinfobuf = deque(maxlen=100)
-    opponents_epinfobuf = [deque(maxlen=100) for _ in range(env.sides)]
+    epinfobuf = deque(maxlen=2048)
+    opponents_epinfobuf = [deque(maxlen=2048) for _ in range(env.sides)]
     if eval_env is not None:
-        eval_epinfobuf = deque(maxlen=100)
+        eval_epinfobuf = deque(maxlen=2048)
 
     if init_fn is not None:
         init_fn()
@@ -150,13 +150,14 @@ def learn(*, network, env, total_timesteps, eval_env = None, seed=None, nsteps=2
         if update % log_interval == 0 and is_mpi_root: logger.info('Stepping environment...')
 
         # Get minibatch
-        obs, returns, masks, actions, values, neglogpacs, states, epinfos = runner.run(1-(update-1)/nupdates) #pylint: disable=E0632
+        # -(update-1)/nupdates
+        obs, returns, masks, actions, values, neglogpacs, states, epinfos = runner.run(frac, **network_kwargs) #pylint: disable=E0632
         if eval_env is not None:
-            eval_obs, eval_returns, eval_masks, eval_actions, eval_values, eval_neglogpacs, eval_states, eval_epinfos = eval_runner.run(1-(update-1)/nupdates) #pylint: disable=E0632
+            eval_obs, eval_returns, eval_masks, eval_actions, eval_values, eval_neglogpacs, eval_states, eval_epinfos = eval_runner.run(frac, **network_kwargs) #pylint: disable=E0632
 
         if update % log_interval == 0 and is_mpi_root: logger.info('Done.')
-
         epinfobuf.extend(epinfos[0::env.sides])
+
         for i in range(env.sides-1):
             opponents_epinfobuf[i].extend(epinfos[i+1::env.sides])
         if eval_env is not None:

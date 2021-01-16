@@ -6,6 +6,7 @@ import os
 import gym
 from collections import defaultdict
 import tensorflow as tf
+
 import numpy as np
 import tactic_game_gym
 import traceback
@@ -61,6 +62,7 @@ def train(args, extra_args):
 
     learn = get_learn_function(args.alg)
     alg_kwargs = get_learn_function_defaults(args.alg, env_type)
+    alg_kwargs.update(vars(args))
     alg_kwargs.update(extra_args)
 
     env = build_env(args)
@@ -74,6 +76,9 @@ def train(args, extra_args):
             alg_kwargs['network'] = get_default_network(env_type)
 
     print('Training {} on {}:{} with arguments \n{}'.format(args.alg, env_type, env_id, alg_kwargs))
+    alg_kwargs.pop("env", None)
+    alg_kwargs.pop("seed", None)
+    alg_kwargs.pop("total_timestep", None)
 
     model = learn(
         env=env,
@@ -227,6 +232,7 @@ def main(args):
 
     if args.play:
         logger.log("Running trained model")
+        print(logger.get_dir())
         checkdir = osp.join(logger.get_dir(), 'checkpoints')
         paths = os.listdir(checkdir)
         print(f"loading model: {paths[-1]}")

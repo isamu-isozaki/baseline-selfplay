@@ -21,20 +21,21 @@ class Runner(AbstractEnvRunner):
         # Discount rate
         self.gamma = gamma
         self.paths = []
-    def run(self, hard_code_rate=1.0):
+    def run(self, hard_code_rate=1.0, **args):
         import gc
         gc.collect()
         debug = False
-        opponent_still = True
+        opponent_still = args["still"]
+        opponent_random = args["random"]
         only_current_model_data = True
         # Here, we init the lists that will contain the mb of experiences
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs = [],[],[],[],[],[]
         mb_states = self.states
         epinfos = []
-        for i in range(len(self.model_opponents)):
+        for i in range(len(self.model_opponents)-1):
             self.model_opponents[i].load_initial(self.paths, i+1)#Opponent has a random policy
         # For n in range number of steps
-        for _ in tqdm(range(self.nsteps)):
+        for _ in range(self.nsteps):
             if debug:
                 print("done step")
             # Given observations, get action value and neglopacs
@@ -58,6 +59,8 @@ class Runner(AbstractEnvRunner):
                 opponent_action, opponent_value, self.opponent_states[i-1], opponent_neglogpac = self.model_opponents[i-1].step(self.obs[i::self.env.sides], S=self.opponent_states[i-1], M=self.dones[i::self.env.sides])
                 if opponent_still:
                     opponent_action[:] = 0
+                elif opponent_random:
+                    opponent_action[:] = np.random.randint(low=0, high=5, size=opponent_action.shape)
                 opponent_actions.append(opponent_action)
                 opponent_values.append(opponent_value)
                 opponent_neglogpacs.append(opponent_neglogpac)
@@ -91,6 +94,7 @@ class Runner(AbstractEnvRunner):
             # Take actions in env and look the results
             # Infos contains a ton of useful informations
             self.obs[:], rewards, self.dones, infos = self.env.step(full_actions, hard_code_rate=hard_code_rate)
+            
             # print(f"obs nan: {np.isnan(np.sum(self.obs))} obs inf: {np.isinf(np.sum(self.obs))} rewards nan: {np.isnan(np.sum(rewards))} rewards inf: {np.isinf(np.sum(rewards))}")
 
             # print(f"obs max: {self.obs.max()}")
